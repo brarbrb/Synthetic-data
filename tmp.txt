@@ -1,0 +1,2 @@
+blenderproc run examples/render_and_paste/main.py
+python examples/render_and_paste/paste_on_random_background.py -i coco_data/images -b /datashare/project/train2017
