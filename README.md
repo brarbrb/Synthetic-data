@@ -8,4 +8,4 @@ conda activate synth
 
 pip install blenderproc
 
-blenderproc quickstart```
+blenderproc quickstart
