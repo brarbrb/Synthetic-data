@@ -8,4 +8,12 @@ conda activate synth
 
 pip install blenderproc
 
-blenderproc quickstart```
+blenderproc quickstart
+
+
+
+### EDA results:
+tweezers have only one material to work cand change, whilst the needle holder has two ptoperties that can vary.
+
+
+Note: change location, scale, and rotation!
