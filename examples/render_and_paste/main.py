@@ -9,7 +9,8 @@ import json
 from colorsys import hsv_to_rgb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--obj', default="surgical_tools_models/needle_holder/NH1.obj", help="Path to the object file.")
+parser.add_argument('--obj_folder', default="/datashare/project/surgical_tools_models/", help="Path to folder with objects.")
+# parser.add_argument('--obj', default="all", help="Path to folders with objects.")
 parser.add_argument('--camera_params', default="camera.json", help="Camera intrinsics in json format")
 parser.add_argument('--output_dir', default="", help="Path to where the final files, will be saved")
 parser.add_argument('--num_images', type=int, default=25, help="Number of images to generate")
@@ -17,16 +18,25 @@ args = parser.parse_args()
 
 bproc.init()
 
-# load the objects into the scene
-obj = bproc.loader.load_obj(args.obj)[0]
-obj.set_cp("category_id", 1)
+IDS = {"needle_holder" : 1, "tweezers" : 2} # TODO: make sure it aligns with Gal's part 2
 
-# Randomly perturbate the material of the object
-mat = obj.get_materials()[0] # needle holder metal color
-mat.set_principled_shader_value("Specular", random.uniform(0, 1))
-mat.set_principled_shader_value("Roughness", random.uniform(0, 1))
-mat.set_principled_shader_value("Metallic", 1)
-mat.set_principled_shader_value("Roughness", 0.2)
+for subfolder in os.listdir(args.obj_folder):
+    full_path = os.path.join(args.obj_folder, subfolder)
+    if os.path.isdir(full_path):
+        print(f"entering the {subfolder}")
+        for obj_name in os.listdir(full_path):
+            print(f"creating images for {obj_name} on random backgrounds")
+            obj_path = os.path.join(full_path, obj_name)
+            obj = bproc.loader.load_obj(obj_path)[0]  # load the objects into the scene
+            obj.set_cp("category_id", IDS[subfolder]) # TODO: check that I don't need to create subcategories for each type of object
+            
+            
+            # Randomly perturbate the material of the object
+            mat = obj.get_materials()[0] # needle holder metal color
+            mat.set_principled_shader_value("Specular", random.uniform(0, 1))
+            mat.set_principled_shader_value("Roughness", random.uniform(0, 1))
+            mat.set_principled_shader_value("Metallic", 1)
+            mat.set_principled_shader_value("Roughness", 0.2)
 
 
 mat = obj.get_materials()[1] # needle holder gold color

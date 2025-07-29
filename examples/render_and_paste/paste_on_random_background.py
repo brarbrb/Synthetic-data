@@ -41,7 +41,7 @@ def main():
     # Create an output directory if `overwrite` is not selected
     if not args.overwrite:
         if args.output == "output":
-            os.makedirs(os.path.join(args.images, "output"), exist_ok=True)
+            os.makedirs(os.path.join(args.images, "output/on_random_background"), exist_ok=True)
         else:
             os.makedirs(args.output, exist_ok=True)
 
@@ -70,7 +70,7 @@ def main():
             else:
                 if args.output == "output":
                     background.save(
-                        os.path.join(args.images, "output", file_name))
+                        os.path.join(args.images, "output/on_random_background", file_name))
                 else:
                     background.save(args.output)
 
