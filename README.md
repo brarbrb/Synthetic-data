@@ -9,7 +9,7 @@ conda activate synth
 pip install blenderproc
 
 blenderproc quickstart
-
+```
 
 
 ### EDA results:
