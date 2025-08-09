@@ -1,6 +1,8 @@
 import blenderproc as bproc
+from blenderproc.python.camera import CameraUtility
 import numpy as np
 import json
+import os
 
 bproc.init()
 obj_folder = "/datashare/project/surgical_tools_models/tweezers/"
@@ -22,27 +24,29 @@ bbox_world = (obj2world_matrix @ bbox_corners_h.T).T[:, :3]
 # print("Bounding box corners in world coordinates:", bbox_world)
 
 
-bproc.camera.add_camera_pose(np.eye(4))  # or your actual pose
-bproc.camera.set_intrinsics_from_blender_params(
-    lens=1.047,                # FOV in radians (example: 60 degrees ≈ 1.047 radians)
-    image_width=640,
-    image_height=480,
-    lens_unit="FOV"
-)
-# camera_params = None
-# with open('camera.json', "r") as file:
-#     camera_params = json.load(file)
+# bproc.camera.add_camera_pose(np.eye(4))  # or your actual pose
+# bproc.camera.set_intrinsics_from_blender_params(
+#     lens=1.047,                # FOV in radians (example: 60 degrees ≈ 1.047 radians)
+#     image_width=640,
+#     image_height=480,
+#     lens_unit="FOV"
+# )
 
-# fx = camera_params["fx"]
-# fy = camera_params["fy"]
-# cx = camera_params["cx"]
-# cy = camera_params["cy"]
-# im_width = camera_params["width"]
-# im_height = camera_params["height"]
-# K = np.array([[fx, 0, cx], 
-#               [0, fy, cy], 
-#               [0, 0, 1]])
-# CameraUtility.set_intrinsics_from_K_matrix(K, im_width, im_height) 
+camera_params = None
+with open('camera.json', "r") as file:
+    camera_params = json.load(file)
+
+fx = camera_params["fx"]
+fy = camera_params["fy"]
+cx = camera_params["cx"]
+cy = camera_params["cy"]
+im_width = camera_params["width"]
+im_height = camera_params["height"]
+K = np.array([[fx, 0, cx], 
+              [0, fy, cy], 
+              [0, 0, 1]])
+CameraUtility.set_intrinsics_from_K_matrix(K, im_width, im_height) 
+bproc.camera.add_camera_pose(np.eye(4))
 
 projected_2d = []
 for corner in bbox_world:
@@ -56,5 +60,6 @@ for i, (u, v) in enumerate(projected_2d):
 # Note: The projected_2d will contain the 2D coordinates of the bounding box corners in the image plane.
 # You can use these coordinates for further processing or visualization.
 
+os.makedirs("output", exist_ok=True)
 with open("output/pose_annotation.json", "w") as f:
     json.dump({"bbox_2d": projected_2d}, f)

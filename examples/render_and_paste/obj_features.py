@@ -5,9 +5,12 @@ import os
 # Including objects original positions and the materials 
 
 obj_folder = "/datashare/project/surgical_tools_models"
+blender_fold = "tools/"
 
 bproc.init()
 CATEGORY_IDS  = {"needle_holder" : 1, "tweezers" : 2} # TODO: make sure it aligns with Gal's part 2
+# vertices = {"handle_end" : 1, "left_arm" : 2, "right_arm" : 3, "left_tip" : 4, "right_tip" : 5}
+
 material_features = {
     "needle_holder": set(),
     "tweezers": set()
@@ -20,11 +23,23 @@ for category in os.listdir(obj_folder):
 
         for obj_name in os.listdir(full_path):
             if obj_name.endswith('.obj'):
+            # if obj_name == "T1.obj":
                 print(f"----- Loading: {obj_name} -----")
                 obj_path = os.path.join(full_path, obj_name)
+                blend_obj_name = obj_name[:-3] +"blend"
+                blend_file_path = os.path.join(blender_fold + category, blend_obj_name)
 
-                obj = bproc.loader.load_obj(obj_path)[0]
-                obj.set_cp("category_id", CATEGORY_IDS [category])
+                obj = bproc.loader.load_obj(obj_path)[0] # TODO: check the tip of needle_holder, it has two objects in it
+                # blend_obj = bproc.loader.load_blend(blend_file_path)
+                # print("Blender file: ", blend_obj)
+                # for vert in blend_obj:
+                #     print("Blender name: ", vert.get_name())
+                #     print("Blender custom properties:", vert.get_all_cps())
+                #     print(f"Blender scale: {vert.get_scale()}")
+                #     print(f"Blender location: {vert.get_location()}")
+                #     print(f"Blender rotation: {vert.get_rotation_euler()}")
+                #     print(f"Blender local to world matrix: {vert.get_local2world_mat()}")
+                # obj.set_cp("category_id", CATEGORY_IDS [category])
 
                 # overall analysis of the object
                 print(f"Object name: {obj.get_name()}")
@@ -51,8 +66,8 @@ for category in os.listdir(obj_folder):
                     if bsdf_node:
                         print("Material Inputs:")
                         for inp in bsdf_node.inputs:
-                            if inp.name not in material_features[category]:
-                                print(f"{inp.name} found first in object {obj_name}")
+                            # if inp.name not in material_features[category]:
+                            #     print(f"{inp.name} found first in object {obj_name}")
                             material_features[category].add(inp.name)
                             # print(f"- {inp.name}")
 
