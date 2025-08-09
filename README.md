@@ -82,3 +82,13 @@ dataset/
   ]
 }
 ```
+
+v in keypoints is visibility:
+
+0 = not labeled,
+
+1 = labeled but not visible,
+
+2 = labeled & visible.
+
+skeleton defines how the keypoints are connected in visualization.
