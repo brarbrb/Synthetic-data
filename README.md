@@ -26,7 +26,8 @@ That way, you only do the annotation once and can reformat as needed.
 Our final structure is: 
 1. For annotations: COCO format (JSON) – supports multiple objects per image, multiple keypoints per object, segmentation masks if needed.
 
-2. We used next folder structure: 
+2. We used next folder structure:
+```
 dataset/
 │
 ├── images/
@@ -45,9 +46,10 @@ dataset/
 └── meta/
     ├── class_names.txt   # ["needle_holder", "tweezers"]
     └── keypoints.txt     # ["tip", "joint", "handle_end", ...]
+```
 
-
-3. Our annotations were saved in coco-jsonlike this: 
+4. Our annotations were saved in coco-jsonlike this: 
+```
 {
   "images": [
     {"id": 1, "file_name": "img_00001.jpg", "width": 640, "height": 480}
@@ -79,3 +81,4 @@ dataset/
     }
   ]
 }
+```
