@@ -13,10 +13,12 @@ def main():
     parser.add_argument("-i",
                         "--images",
                         type=str,
+                        default="output/val/images", #change here if on validate
                         help="Path to object images to paste.")
     parser.add_argument("-b",
                         "--backgrounds",
                         type=str,
+                        default="/datashare/project/train2017",
                         help="Path to background images to paste on.")
     parser.add_argument("-t",
                         "--types",
@@ -28,6 +30,7 @@ def main():
         "-w",
         "--overwrite",
         action="store_true",
+        default=True,
         help=
         "Merges images and backgrounds, overwriting original files. Default: False."
     )
@@ -70,7 +73,7 @@ def main():
             else:
                 if args.output == "output":
                     background.save(
-                        os.path.join(args.images, "output/on_random_background", file_name))
+                        os.path.join(args.images, "output/train_on_random", file_name))
                 else:
                     background.save(args.output)
 
