@@ -5,35 +5,56 @@ import numpy as np
 import argparse
 import random
 import os
+import glob
 import json
 from colorsys import hsv_to_rgb
-import matplotlib.pyplot as plt
 
-IDS = {"needle_holder": 1, "tweezers": 2}
+IDS = {"needle_holder" : 1, "tweezers" : 2}
 
-material_features = [
-    'Alpha','Anisotropic','Anisotropic Rotation','Base Color','Coat IOR','Coat Normal',
-    'Coat Roughness','Coat Tint','Coat Weight','Emission Color','Emission Strength','IOR',
-    'Metallic','Normal','Roughness','Sheen Roughness','Sheen Tint','Sheen Weight',
-    'Specular IOR Level','Specular Tint','Subsurface Anisotropy','Subsurface Radius',
-    'Subsurface Scale','Subsurface Weight','Tangent','Thin Film IOR',
-    'Thin Film Thickness','Transmission Weight'
-]
+# from
+material_features = ['Alpha', 'Anisotropic', 'Anisotropic Rotation', 'Base Color', 
+                    'Coat IOR', 'Coat Normal', 'Coat Roughness', 'Coat Tint', 'Coat Weight',
+                    'Emission Color', 'Emission Strength', 'IOR', 'Metallic', 'Normal', 'Roughness',
+                    'Sheen Roughness', 'Sheen Tint', 'Sheen Weight', 'Specular IOR Level',
+                    'Specular Tint', 'Subsurface Anisotropy', 'Subsurface Radius',
+                    'Subsurface Scale', 'Subsurface Weight', 'Tangent', 'Thin Film IOR',
+                    'Thin Film Thickness', 'Transmission Weight'] # got it from previous EDA
+
+
+def get_hdr_img_paths_from_haven(data_path: str) -> str:
+    """ Returns .hdr file paths from the given directory.
+
+    :param data_path: A path pointing to a directory containing .hdr files.
+    :return: .hdr file paths
+    """
+
+    if os.path.exists(data_path):
+        data_path = os.path.join(data_path, "hdris")
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"The folder: {data_path} does not contain a folder name hdfris. "
+                                    f"Please use the download script.")
+    else:
+        raise FileNotFoundError(f"The data path does not exists: {data_path}")
+
+    hdr_files = glob.glob(os.path.join(data_path, "*", "*.hdr"))
+    # this will be ensure that the call is deterministic
+    hdr_files.sort()
+    return hdr_files
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset_type', default="train", help="train/val/etc")
-parser.add_argument('--obj_folder', default="/datashare/project/surgical_tools_models/", help="Folder with objects")
-parser.add_argument('--camera_params', default="camera.json", help="Intrinsics json")
-parser.add_argument('--output_dir', default="output", help="Output root")
+parser.add_argument('--dataset_type', default="train", help="for what dataset to create the images") # change to train when needed
+parser.add_argument('--obj_folder', default="/datashare/project/surgical_tools_models/", help="Path to folder with objects.")
+parser.add_argument('--camera_params', default="camera.json", help="Camera intrinsics in json format")
+parser.add_argument('--output_dir', default="output", help="Path to where the final files, will be saved")
+parser.add_argument('--haven_path', default="/datashare/project/haven/", help="Path to the haven hdri images")
+
 args = parser.parse_args()
-bproc.init()
 
 # --- Paths for manual keypoints COCO ---
 kp_out_dir = os.path.join(args.output_dir, args.dataset_type)
 os.makedirs(kp_out_dir, exist_ok=True)
 kp_json_path = os.path.join(kp_out_dir, 'coco_keypoints.json')
 images_dir = os.path.join(args.output_dir, args.dataset_type, 'images')  # BlenderProc writer target
-# do not create images_dir here; BlenderProc writer creates it
 
 # --- Helper: 3D world -> 2D pixels ---
 def project_world_points_to_image(points_world_xyz, cam2world, K):
@@ -89,6 +110,8 @@ def count_pngs(folder):
     except FileNotFoundError:
         return 0
 
+bproc.init()
+
 for subfolder in os.listdir(args.obj_folder):
     full_path = os.path.join(args.obj_folder, subfolder)
     if not os.path.isdir(full_path):
@@ -110,10 +133,9 @@ for subfolder in os.listdir(args.obj_folder):
         bbox_local = np.array(obj.get_bound_box())            # (8,3) local
         bbox_local_h = np.concatenate([bbox_local, np.ones((8, 1))], axis=1)
         bbox_world_xyz = ((obj2world_matrix @ bbox_local_h.T).T)[:, :3]  # (8,3)
-
         # Randomize materials
         for mat in obj.get_materials():
-            for feat in random.sample(material_features, min(5, len(material_features))):
+            for feat in random.sample(material_features, 5):
                 try:
                     if feat in ["Base Color","Emission Color","Coat Tint","Sheen Tint","Specular Tint"]:
                         val = tuple(random.uniform(0, 1) for _ in range(4))
@@ -124,7 +146,6 @@ for subfolder in os.listdir(args.obj_folder):
                     mat.set_principled_shader_value(feat, val)
                 except Exception as e:
                     print(f"Could not set {feat} for {mat.get_name()}: {e}")
-
         # Light
         light = bproc.types.Light()
         light.set_type("POINT")
@@ -137,15 +158,23 @@ for subfolder in os.listdir(args.obj_folder):
 
         # --- Sample camera poses (store them locally!) ---
         cam_poses = []  # <<< store matrices here
+        # load HDRI
+        hdr_files = get_hdr_img_paths_from_haven(args.haven_path)
         poses, tries = 0, 0
-        num_images = 25 if args.dataset_type == "train" else 1
+        num_images = 25 if args.dataset_type == "train" else 3
         while tries < 10000 and poses < num_images:
             bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[1].default_value = np.random.uniform(0.1, 1.5)
+            random_hdr_file = random.choice(hdr_files)
+            bproc.world.set_world_background_hdr_img(random_hdr_file)
+            
             location = bproc.sampler.shell(
                 center=obj.get_location(),
-                radius_min=2, radius_max=10,
-                elevation_min=-90, elevation_max=90
+                radius_min=2,
+                radius_max=10,
+                elevation_min=-90,
+                elevation_max=90
             )
+            
             lookat_point = obj.get_location() + np.random.uniform([-0.5,-0.5,-0.5],[0.5,0.5,0.5])
             rotation_matrix = bproc.camera.rotation_from_forward_vec(
                 lookat_point - location,
@@ -159,21 +188,18 @@ for subfolder in os.listdir(args.obj_folder):
                 poses += 1
             tries += 1
 
-        # Render (RGBA & segmaps; writer below uses these to save images)
         bproc.renderer.set_max_amount_of_samples(100)
-        bproc.renderer.set_output_format(enable_transparency=True)
+        bproc.renderer.set_output_format(enable_transparency=False)
         bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
         data = bproc.renderer.render()
-
-        # Write COCO det/seg + images to disk
-        bproc.writer.write_coco_annotations(
-            output_dir=os.path.join(args.output_dir, args.dataset_type),
-            instance_segmaps=data["instance_segmaps"],
-            instance_attribute_maps=data["instance_attribute_maps"],
-            colors=data["colors"],
-            mask_encoding_format="rle",
-            append_to_existing_output=True
-        )
+        
+        bproc.writer.write_coco_annotations(os.path.join(args.output_dir, args.dataset_type),
+                                    instance_segmaps=data["instance_segmaps"],
+                                    instance_attribute_maps=data["instance_attribute_maps"],
+                                    colors=data["colors"],
+                                    mask_encoding_format="rle",
+                                    append_to_existing_output=True)
+            
 
         # --- Map our manual JSON to the exact filenames BlenderProc just wrote ---
         frames_rendered = len(data["colors"])
@@ -243,4 +269,3 @@ for subfolder in os.listdir(args.obj_folder):
         print(f"Appended projected-AABB keypoints; total images now: {len(images)}")
 
         bproc.object.delete_multiple(loaded, remove_all_offspring=True)
-        # No need to touch CameraUtility internals anymore
