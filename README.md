@@ -10,7 +10,28 @@ pip install blenderproc
 
 blenderproc quickstart
 ```
+# Best models for this task
+1.  HRNet - Backbone that keeps high-resolution feature maps all the way through the network.
 
+    Excellent accuracy for fine spatial localization (important for small keypoints like tool tips).
+
+    There's open pose which is good for few objects on same image 
+
+2. Top-down models (Keypoint R-CNN, YOLO-pose, RTMPose, ViTPose)
+
+    First detect each object with a bounding box.
+
+    Then run a pose head on the cropped image to get its keypoints.
+
+    Usually more accurate for small or thin objects (like tweezers).
+
+3.  Top-down models (Keypoint R-CNN, YOLO-pose, RTMPose, ViTPose)
+
+    First detect each object with a bounding box.
+
+    Then run a pose head on the cropped image to get its keypoints.
+
+    Usually more accurate for small or thin objects (like tweezers).
 
 ### EDA results:
 tweezers have only one material to work cand change, whilst the needle holder has two ptoperties that can vary.

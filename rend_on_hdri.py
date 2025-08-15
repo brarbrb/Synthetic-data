@@ -5,10 +5,9 @@ import numpy as np
 import argparse
 import random
 import os
+import glob
 import json
 from colorsys import hsv_to_rgb
-import matplotlib.pyplot as plt
-
 
 IDS = {"needle_holder" : 1, "tweezers" : 2}
 
@@ -17,37 +16,51 @@ material_features = ['Alpha', 'Anisotropic', 'Anisotropic Rotation', 'Base Color
                     'Coat IOR', 'Coat Normal', 'Coat Roughness', 'Coat Tint', 'Coat Weight',
                     'Emission Color', 'Emission Strength', 'IOR', 'Metallic', 'Normal', 'Roughness',
                     'Sheen Roughness', 'Sheen Tint', 'Sheen Weight', 'Specular IOR Level',
-                    'Specular Tint', 'Subsurface Anisotropy', 'Subsurface Radius',
+                    'Specular Tint', 'Subsurface Anisotropy', 'Subsurface IOR', 'Subsurface Radius',
                     'Subsurface Scale', 'Subsurface Weight', 'Tangent', 'Thin Film IOR',
-                    'Thin Film Thickness', 'Transmission Weight'] # got it from previous EDA
+                    'Thin Film Thickness', 'Transmission Weight', 'Weight'] # got it from previous EDA
 
-# coco_dataset_path_synth = "output/coco_synthetic"
-# labels_path = coco_dataset_path_synth + "/labels"
-# images_path = coco_dataset_path_synth + "/images"
-# train_set_path = "/train/"
-# val_set_path = "/val/"
-# test_set_path = "" # this will be for final product and estimation based on videos
 
-# os.makedirs(coco_dataset_path_synth, exist_ok=True) 
-# os.makedirs(labels_path, exist_ok=True)
-# os.makedirs(images_path, exist_ok=True) 
-# os.makedirs(labels_path + train_set_path, exist_ok=True) 
-# os.makedirs(labels_path + val_set_path, exist_ok=True) 
-# os.makedirs(images_path + train_set_path, exist_ok=True) 
-# os.makedirs(images_path + val_set_path, exist_ok=True) 
+def get_hdr_img_paths_from_haven(data_path: str) -> str:
+    """ Returns .hdr file paths from the given directory.
+
+    :param data_path: A path pointing to a directory containing .hdr files.
+    :return: .hdr file paths
+    """
+
+    if os.path.exists(data_path):
+        data_path = os.path.join(data_path, "hdris")
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"The folder: {data_path} does not contain a folder name hdfris. "
+                                    f"Please use the download script.")
+    else:
+        raise FileNotFoundError(f"The data path does not exists: {data_path}")
+
+    hdr_files = glob.glob(os.path.join(data_path, "*", "*.hdr"))
+    # this will be ensure that the call is deterministic
+    hdr_files.sort()
+    return hdr_files
+
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset_type', default="val", help="for what dataset to create the images")
+parser.add_argument('--dataset_type', default="val", help="for what dataset to create the images") # change to train when needed
 parser.add_argument('--obj_folder', default="/datashare/project/surgical_tools_models/", help="Path to folder with objects.")
 parser.add_argument('--camera_params', default="camera.json", help="Camera intrinsics in json format")
 parser.add_argument('--output_dir', default="output", help="Path to where the final files, will be saved")
 # parser.add_argument('--num_images', type=int, default = 25, help="Number of images to generate") # for train
-# parser.add_argument('--num_images', type=int, default = 1, help="Number of images to generate") # val set
+parser.add_argument('--num_images', type=int, default = 1, help="Number of images to generate") # val set - for each 3 ? 
+parser.add_argument('--haven_path', default="/datashare/project/haven/", help="Path to the haven hdri images")
+# parser.add_argument('--debug', action='store_true', help="Enable debug mode")
+
 args = parser.parse_args()
+
 bproc.init()
-kp_out_dir = os.path.join(args.output_dir, 'coco_data/' + args.dataset_type)
-os.makedirs(kp_out_dir, exist_ok=True)
-kp_json_path = os.path.join(kp_out_dir, 'coco_keypoints.json')
+
+# if args.debug:
+#     import debugpy
+#     debugpy.listen(5678)
+#     print("Waiting for debugger attach")
+#     debugpy.wait_for_client()
 
 for subfolder in os.listdir(args.obj_folder):
     full_path = os.path.join(args.obj_folder, subfolder)
@@ -58,11 +71,11 @@ for subfolder in os.listdir(args.obj_folder):
                 continue
             print(f"creating images for {obj_name} on random backgrounds")
             obj_path = os.path.join(full_path, obj_name)
-            loaded = bproc.loader.load_obj(obj_path)   # <- this is a list
+            loaded = bproc.loader.load_obj(obj_path)   
             obj = loaded[0]
             # obj = bproc.loader.load_obj(obj_path)[0]  # load the objects into the scene
             obj.set_cp("category_id", IDS[subfolder]) 
-            
+                        
             # Key Point part - here I used bounding box
             # Get transformation matrix from object (object to world)
             obj2world_matrix = obj.get_local2world_mat() 
@@ -119,14 +132,21 @@ for subfolder in os.listdir(args.obj_folder):
             CameraUtility.set_intrinsics_from_K_matrix(K, im_width, im_height) 
             poses = 0
             tries = 0
+            # load hdris
+            hdr_files = get_hdr_img_paths_from_haven(args.haven_path)
+            
             if args.dataset_type == "train":
                 num_images = 25
             else:
                 num_images = 3
+                
             while tries < 10000 and poses < num_images:
-
                 # Set a random world lighting strength
                 bpy.data.worlds["World"].node_tree.nodes["Background"].inputs[1].default_value = np.random.uniform(0.1, 1.5)
+
+                # Set a random hdri from the given haven directory as background
+                random_hdr_file = random.choice(hdr_files)
+                bproc.world.set_world_background_hdr_img(random_hdr_file)
 
                 # Sample random camera location around the object
                 location = bproc.sampler.shell(
@@ -136,11 +156,9 @@ for subfolder in os.listdir(args.obj_folder):
                     elevation_min=-90,
                     elevation_max=90
                 )
-                
                 # Compute rotation based lookat point which is placed randomly around the object
                 lookat_point = obj.get_location() + np.random.uniform([-0.5, -0.5, -0.5], [0.5, 0.5, 0.5])
                 rotation_matrix = bproc.camera.rotation_from_forward_vec(lookat_point - location, inplane_rot=np.random.uniform(-0.7854, 0.7854))
-                
                 # Add homog cam pose based on location an rotation
                 cam2world_matrix = bproc.math.build_transformation_mat(location, rotation_matrix)
 
@@ -149,112 +167,140 @@ for subfolder in os.listdir(args.obj_folder):
                     bproc.camera.add_camera_pose(cam2world_matrix, frame=poses)
                     poses += 1
                 tries += 1
-
+                print(tries)
+                
             bproc.renderer.set_max_amount_of_samples(100) # to speed up rendering, reduce the number of samples
             # Disable transparency so the background becomes transparent
-            bproc.renderer.set_output_format(enable_transparency=True)
+            bproc.renderer.set_output_format(enable_transparency=False)
             # add segmentation masks (per class and per instance)
             bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
 
             # Render RGB images
             data = bproc.renderer.render()
 
-            # Save annotations
-            # bproc.writer.write_coco_annotations(
-            #     output_dir=os.path.join(args.output_dir, 'coco_data'),
-            #     instance_segmaps=data["instance_segmaps"],
-            #     instance_attribute_maps=data["instance_attribute_maps"],
-            #     colors=data["colors"],
-            #     mask_encoding_format="polygon", - this was changed. hope it still works with models
-            #     append_to_existing_output=True
-            # ) - old one
+            # Write data to coco file
+            bproc.writer.write_coco_annotations(os.path.join(args.output_dir, 'coco_data'),
+                                    instance_segmaps=data["instance_segmaps"],
+                                    instance_attribute_maps=data["instance_attribute_maps"],
+                                    colors=data["colors"],
+                                    mask_encoding_format="rle",
+                                    append_to_existing_output=True)
             
-            # suggested fix
-            bproc.writer.write_coco_annotations(
-            output_dir=os.path.join(args.output_dir, args.dataset_type),
-            instance_segmaps=data["instance_segmaps"],
-            instance_attribute_maps=data["instance_attribute_maps"],
-            colors=data["colors"],
-            mask_encoding_format="rle",           # better as it's lighter, harder to understanf=d
-            append_to_existing_output=True
-            )
+                        
+            # Where we’ll write the COCO keypoints file
+            kp_out_dir = os.path.join(args.output_dir, args.dataset_type)
+            os.makedirs(kp_out_dir, exist_ok=True)
+            kp_json_path = os.path.join(kp_out_dir, 'coco_keypoints.json')
 
-            # 1) Load existing or init fresh once per call
-            if os.path.exists(kp_json_path):
-                with open(kp_json_path, "r") as f:
-                    kp = json.load(f)
-                images = kp.get("images", [])
-                annotations = kp.get("annotations", [])
-                categories = kp.get("categories", [])
-                next_img_id = (max((im["id"] for im in images), default=0) + 1)
-                next_ann_id = (max((an["id"] for an in annotations), default=0) + 1)
-            else:
-                # first time
-                kp_names = ["bb_tl", "bb_tr", "bb_br", "bb_bl", "bb_center"]
-                skeleton = [[1,2],[2,3],[3,4],[4,1],[1,5],[2,5],[3,5],[4,5]]
-                categories = [{"id": cid, "name": name, "supercategory": "tool",
-                               "keypoints": kp_names, "skeleton": skeleton}
-                              for name, cid in IDS.items()]
-                images, annotations = [], []
-                next_img_id, next_ann_id = 1, 1
+            # COCO scaffolding
+            images = []
+            annotations = []
+            categories = []
 
-            # 2) Append this render’s frames
-            for rgba, seg, attr_maps in zip(
-                    data["colors"], data["instance_segmaps"],
-                    data.get("instance_attribute_maps", [{}]*len(data["colors"]))):
+            # Define your categories (from IDS)
+            # Add keypoint names and a simple skeleton (optional)
+            kp_names = ["bb_tl", "bb_tr", "bb_br", "bb_bl", "bb_center"]
+            skeleton = [[1,2],[2,3],[3,4],[4,1],[1,5],[2,5],[3,5],[4,5]]  # edges between points (1-based)
 
+            for name, cid in IDS.items():
+                categories.append({
+                    "id": cid,
+                    "name": name,
+                    "supercategory": "tool",
+                    "keypoints": kp_names,
+                    "skeleton": skeleton
+                })
+
+            ann_id = 1
+
+            # data["colors"] is a list of images (one per frame)
+            # We'll assume filenames are 000000.png, 000001.png, ... (BlenderProc’s default)
+            for frame_idx, (rgba, seg) in enumerate(zip(data["colors"], data["instance_segmaps"])):
                 h, w = seg.shape
-                img_id = next_img_id
-                file_name = f"images/{img_id:06d}.png"   # keep global, not per-render
+                file_name = f"{frame_idx:06d}.png"
 
-                images.append({"id": img_id, "width": w, "height": h, "file_name": file_name})
-                next_img_id += 1
+                # Register image entry
+                images.append({
+                    "id": frame_idx + 1,        # COCO image ids are 1-based
+                    "width": w,
+                    "height": h,
+                    "file_name": file_name
+                })
 
-                # per-instance bboxes -> keypoints
+                # Look up per-instance attributes (like category_id) from the returned maps
+                # BlenderProc gives a dict per frame keyed by attribute; fall back if missing
+                attr_maps = data.get("instance_attribute_maps", [{}]*len(data["colors"]))
+                frame_attrs = attr_maps[frame_idx] if frame_idx < len(attr_maps) else {}
+
+                # Unique instance ids (ignore 0 = background)
                 instance_ids = np.unique(seg)
                 instance_ids = instance_ids[instance_ids != 0]
+
                 for iid in instance_ids:
                     ys, xs = np.where(seg == iid)
-                    if ys.size == 0: 
+                    if ys.size == 0:
                         continue
+
                     x0, y0 = int(xs.min()), int(ys.min())
                     x1, y1 = int(xs.max()), int(ys.max())
                     bw, bh = (x1 - x0 + 1), (y1 - y0 + 1)
 
-                    tl=(x0,y0); tr=(x1,y0); br=(x1,y1); bl=(x0,y1)
-                    cx, cy = (x0 + x1)/2.0, (y0 + y1)/2.0
-                    v = 2
-                    keypoints_flat = [tl[0],tl[1],v, tr[0],tr[1],v, br[0],br[1],v, bl[0],bl[1],v, cx,cy,v]
+                    # Keypoints from bbox
+                    tl = (x0, y0)
+                    tr = (x1, y0)
+                    br = (x1, y1)
+                    bl = (x0, y1)
+                    cx, cy = (x0 + x1) / 2.0, (y0 + y1) / 2.0
 
-                    # category_id from attribute map if present
-                    cat_id = 1
-                    if isinstance(attr_maps, dict) and "category_id" in attr_maps:
-                        cat_map = attr_maps["category_id"]
+                    # Visibility flag v: 2 = labeled & visible (COCO convention)
+                    v = 2
+                    keypoints_flat = [
+                        tl[0], tl[1], v,
+                        tr[0], tr[1], v,
+                        br[0], br[1], v,
+                        bl[0], bl[1], v,
+                        cx,    cy,    v
+                    ]
+
+                    # Category: try to read from attribute map; fallback to a default if needed
+                    # BlenderProc usually provides a per-instance "category_id" map with shape like the segmap.
+                    # We’ll pick the category at the center pixel of the instance (or use a mode over the mask).
+                    cat_id = None
+                    if isinstance(frame_attrs, dict) and "category_id" in frame_attrs:
+                        # frame_attrs["category_id"] is an array aligned with seg; sample within the instance
+                        cat_map = frame_attrs["category_id"]
+                        # sample at mask centroid (integer)
                         cyi, cxi = int(round(cy)), int(round(cx))
                         cyi = np.clip(cyi, 0, h-1); cxi = np.clip(cxi, 0, w-1)
-                        val = int(cat_map[cyi, cxi])
-                        if val != 0:
-                            cat_id = val
+                        cat_id = int(cat_map[cyi, cxi])
+                    # Fallback: if missing, you can set a default or skip
+                    if cat_id is None or cat_id == 0:
+                        # If you rendered one object class per pass, you could infer from the subfolder name.
+                        # Here we default to 1 to avoid breaking the format; adjust as needed.
+                        cat_id = 1
 
                     annotations.append({
-                        "id": next_ann_id,
-                        "image_id": img_id,
+                        "id": ann_id,
+                        "image_id": frame_idx + 1,
                         "category_id": cat_id,
                         "iscrowd": 0,
                         "area": int(bw * bh),
-                        "bbox": [int(x0), int(y0), int(bw), int(bh)],
-                        "num_keypoints": 5,
-                        "keypoints": keypoints_flat
+                        "bbox": [int(x0), int(y0), int(bw), int(bh)],   # keep normal COCO bbox too
+                        "num_keypoints": len(kp_names),
+                        "keypoints": keypoints_flat,
+                        # segmentation can be omitted for a keypoint task; detectors/trainers accept this
                     })
-                    next_ann_id += 1
+                    ann_id += 1
 
-            # 3) Save back (now cumulative)
+            # Write COCO keypoints JSON
             with open(kp_json_path, "w") as f:
-                json.dump({"images": images, "annotations": annotations, "categories": categories}, f)
+                json.dump({
+                    "images": images,
+                    "annotations": annotations,
+                    "categories": categories
+                }, f)
 
-            print(f"Appended keypoints; total images now: {len(images)}")
-
-            # print(f"Wrote COCO keypoints to: {kp_json_path}")
+            print(f"Wrote COCO keypoints to: {kp_json_path}")
             bproc.object.delete_multiple(loaded, remove_all_offspring=True)
 
             # reset the internal camera pose list so poses don’t accumulate:
