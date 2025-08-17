@@ -1,0 +1,16 @@
+# surgical_tools_pose.yaml
+path: /home/student/Synthetic-data/output
+train: train/images
+val: val/images
+
+# 5 keypoints, each as (x,y,v) → dimension=3
+kpt_shape: [5, 3]
+
+# (Optional) horizontal flip symmetry pairs (0‑indexed by your keypoint order)
+# If you don’t have true left/right symmetry, leave it empty or omit.
+flip_idx: []
+
+# Class names in YOLO index order (must match your conversion mapping)
+names:
+  0: needle_holder
+  1: tweezers
