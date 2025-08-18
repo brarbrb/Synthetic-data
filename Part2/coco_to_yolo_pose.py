@@ -1,4 +1,4 @@
-# save as coco_to_yolo_pose.py
+# converter of coco format to yolo format
 import json, os, pathlib
 
 def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None):
@@ -54,6 +54,6 @@ def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None
 
 if __name__ == "__main__":
     # Train split
-    convert_split("output/train")
+    convert_split("out/train")
     # Val split
-    convert_split("output/val")
+    convert_split("out/val")

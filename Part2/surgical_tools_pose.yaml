@@ -1,5 +1,5 @@
 # surgical_tools_pose.yaml
-path: /home/student/Synthetic-data/output
+path: /home/student/Synthetic-data/out
 train: train/images
 val: val/images
 
