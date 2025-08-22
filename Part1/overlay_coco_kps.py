@@ -2,6 +2,9 @@ import json, argparse, os
 import cv2
 import numpy as np
 
+# This code shows keypoints on the rendered image. 
+# It loads the image and according keypoint from json with Ground truth points and shows them
+
 def load_coco(coco_path):
     with open(coco_path, "r") as f:
         coco = json.load(f)
@@ -60,9 +63,9 @@ def draw_overlay(img_bgr, anns, cats_by_id, alpha=0.5, draw_bbox=True, draw_skel
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--coco", default="out/train/coco_keypoints.json", help="Path to coco.json")
-    ap.add_argument("--images_root", default="out/train", help="Root folder containing the image files")
-    ap.add_argument("--image_file", default= "images/000469.png", help="Relative path to the PNG inside images_root (e.g., images/000000.png)")
+    ap.add_argument("--coco", default="tmpppppp/val/coco_keypoints.json", help="Path to coco.json")
+    ap.add_argument("--images_root", default="tmpppppp/val", help="Root folder containing the image files")
+    ap.add_argument("--image_file", default= "images/000000.png", help="Relative path to the PNG inside images_root (e.g., images/000000.png)")
     ap.add_argument("--out_overlay", default="overlay.png", help="Where to save the overlay image")
     ap.add_argument("--out_mask", default="mask.png", help="Where to save the binary mask")
     ap.add_argument("--alpha", type=float, default=0.5, help="Overlay opacity")

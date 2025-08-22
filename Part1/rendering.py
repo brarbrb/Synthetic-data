@@ -25,7 +25,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_type', default="val", help="train/val/test")
 parser.add_argument('--tools_root', default="tools", help="Folder containing class subfolders with .blend files")
 parser.add_argument('--camera_params', default="camera.json", help="Intrinsics JSON")
-parser.add_argument('--output_dir', default="out", help="Output root")
+parser.add_argument('--output_dir', default="tmpppppp", help="Output root")
 parser.add_argument('--num_frames_per_tool', type=int, default=5, help="Desired frames per tool (min 30 enforced)")
 parser.add_argument('--radius_min', type=float, default=3.0, help="Min camera radius (meters)")
 parser.add_argument('--radius_max', type=float, default=12.0, help="Max camera radius (meters)")
@@ -34,6 +34,12 @@ parser.add_argument('--max_tries', type=int, default=8000, help="Pose sampling g
 args = parser.parse_args()
 
 bproc.init()
+# Render controls - needed once per running :) 
+bproc.renderer.set_max_amount_of_samples(96)
+bproc.renderer.set_output_format(enable_transparency=True)
+bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
+bproc.renderer.enable_depth_output(activate_antialiasing=False)  # we need depth maps for occlusion flags
+
 
 # -------- Output paths --------
 split_dir = os.path.join(args.output_dir, args.dataset_type)
@@ -65,6 +71,17 @@ def project_world(points_xyz, cam2world, K):
     y = -K[1,1] * (Y / Zs) + K[1,2]
     return np.stack([x,y], axis=1), valid
 
+def project_world_with_Z(points_xyz, cam2world, K):
+    world2cam = np.linalg.inv(cam2world)
+    Pw = np.c_[points_xyz, np.ones(len(points_xyz))]
+    Pc = (world2cam @ Pw.T).T[:, :3]   # camera space (X,Y,Z)
+    X, Y, Z = Pc[:, 0], Pc[:, 1], Pc[:, 2]
+    Zc = -Z  # positive when in front of camera
+    valid = Zc > 1e-6
+    x = K[0, 0] * (X / np.where(valid, Zc, 1.0)) + K[0, 2]
+    y = -K[1, 1] * (Y / np.where(valid, Zc, 1.0)) + K[1, 2]
+    return np.stack([x, y], axis=1), Zc, valid
+
 def clamp_box(x0,y0,x1,y1,w,h):
     x0c = float(np.clip(x0, 0, w-1)); y0c = float(np.clip(y0, 0, h-1))
     x1c = float(np.clip(x1, 0, w-1)); y1c = float(np.clip(y1, 0, h-1))
@@ -74,6 +91,21 @@ def clamp_box(x0,y0,x1,y1,w,h):
 
 def vflag(x, y, w, h):
     return 2 if (0.0 <= x <= w-1 and 0.0 <= y <= h-1) else 1
+
+def vflag_occlusion(x, y, w, h, Zc, depth_map, tol=0.01):
+    # If outside image → 0
+    if not (0 <= x < w and 0 <= y < h):
+        return 0
+    # If projected behind camera → 0
+    if Zc <= 0:
+        return 0
+    # Compare depth at pixel to keypoint depth (smaller = closer)
+    di = depth_map[int(round(y)), int(round(x))]
+    if not np.isfinite(di):
+        # No depth written (background). Keypoint not actually visible.
+        return 1  # mark as occluded but present
+    # If our 3D point is the front-most within tolerance → visible (2)
+    return 2 if (Zc <= di + tol) else 1
 
 def count_pngs(folder):
     try:
@@ -171,11 +203,6 @@ for cls_name, blend_path in blend_jobs:
     light.set_energy(random.uniform(150, 800))
     light.set_location(tool.get_location() + np.array([0.5, 0.5, 0.8]))
 
-    # Render controls
-    bproc.renderer.set_max_amount_of_samples(96)
-    bproc.renderer.set_output_format(enable_transparency=True)
-    bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
-
     # Frames target: at least 30
     frames_target = min(args.num_frames_per_tool, 30)
     cam_poses = []
@@ -246,6 +273,9 @@ for cls_name, blend_path in blend_jobs:
 
     # Render
     data = bproc.renderer.render()
+    
+    depth_maps = data["depth"]  # list of HxW float32, distance from camera
+
 
     # Writer: det/seg + images
     bproc.writer.write_coco_annotations(
@@ -267,28 +297,31 @@ for cls_name, blend_path in blend_jobs:
     for frame_idx, (rgba, cam2world) in enumerate(zip(data["colors"], cam_poses)):
         h, w = rgba.shape[0], rgba.shape[1]
 
-        pts2d, valid = project_world(kp_world_static, cam2world, K)
-        vis_pts = pts2d[valid]
+        # --- NEW: project with Z and use depth for occlusion-aware visibility ---
+        pts2d, Zc_all, valid = project_world_with_Z(kp_world_static, cam2world, K)
+        depth_map = depth_maps[frame_idx]
 
+        vis_pts = pts2d[valid]
         if vis_pts.shape[0] >= 1:
-            x0, y0 = vis_pts[:,0].min(), vis_pts[:,1].min()
-            x1, y1 = vis_pts[:,0].max(), vis_pts[:,1].max()
+            x0, y0 = vis_pts[:, 0].min(), vis_pts[:, 1].min()
+            x1, y1 = vis_pts[:, 0].max(), vis_pts[:, 1].max()
         else:
+            # fallback on mesh bbox if no KP is in front
             pts2d_bb, valid_bb = project_world(bbox_world, cam2world, K)
             vb = pts2d_bb[valid_bb]
             if vb.shape[0] == 0:
-                # nothing visible -> skip
                 continue
-            x0, y0 = vb[:,0].min(), vb[:,1].min()
-            x1, y1 = vb[:,0].max(), vb[:,1].max()
+            x0, y0 = vb[:, 0].min(), vb[:, 1].min()
+            x1, y1 = vb[:, 0].max(), vb[:, 1].max()
 
         x0c, y0c, bw, bh = clamp_box(x0, y0, x1, y1, w, h)
 
-        # COCO keypoints [x,y,v] in your specified order
+        # --- NEW: occlusion-aware [x,y,v] using depth ---
         keypoints = []
         for i in range(len(kp_names)):
-            x, y = float(pts2d[i,0]), float(pts2d[i,1])
-            keypoints += [x, y, vflag(x, y, w, h)]
+            x, y = float(pts2d[i, 0]), float(pts2d[i, 1])
+            v = vflag_occlusion(x, y, w, h, float(Zc_all[i]), depth_map, tol=0.01)
+            keypoints += [x, y, v]
 
         img_id = start_idx + frame_idx
         file_name = f"images/{img_id:06d}.png"
@@ -302,7 +335,7 @@ for cls_name, blend_path in blend_jobs:
             "category_id": cat_id,
             "iscrowd": 0,
             "area": int(round(bw * bh)),
-            "bbox": [int(round(x0c)), int(round(y0c)), int(round(bw)), int(round(bh))],  # xywh
+            "bbox": [int(round(x0c)), int(round(y0c)), int(round(bw)), int(round(bh))],
             "num_keypoints": len(kp_names),
             "keypoints": keypoints
         })
