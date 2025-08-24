@@ -4,19 +4,23 @@ import bpy
 import numpy as np
 import argparse, os, json, random, glob
 
+# In this file we render with depth aware and hdri! 
+
 # -------- Categories, KP order, skeletons --------
 CATEGORIES = {
     "tweezers": {
         "id": 2,
         "name": "tweezers",
-        "kp_order": ["handle_end","left_arm","left_tip","right_arm","right_tip"],
-        "skeleton": [[1,2],[2,3],[1,4],[4,5]]
+        "kp_order": ["handle_end", "left_arm", "left_tip", "right_arm", "right_tip"],
+        "skeleton": [[0,1],[0,3],[1,2],[3,4]],
+        "swap_pairs": [[1,3],[2,4]],
     },
     "needle_holder": {
         "id": 1,
         "name": "needle_holder",
-        "kp_order": ["left_tip","right_tip","joint","left_handle","right_handle"],
-        "skeleton": [[1,3],[2,3],[3,4],[3,5]]
+        "kp_order": ["joint", "left_handle", "left_tip", "right_handle", "right_tip"],
+        "skeleton": [[0,1],[0,2],[0,3],[0,4]],
+        "swap_pairs": [[1,3],[2,4]],
     }
 }
 
@@ -31,11 +35,11 @@ material_features = [
 
 # -------- Args --------
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset_type', default="train", help="train/val/test")
+parser.add_argument('--dataset_type', default="val", help="train/val/test")
 parser.add_argument('--tools_root', default="tools", help="Folder containing class subfolders with .blend files")
 parser.add_argument('--camera_params', default="camera.json", help="Intrinsics JSON")
-parser.add_argument('--output_dir', default="tmpppp", help="Output root")
-parser.add_argument('--num_frames_per_tool', type=int, default=3, help="Desired frames per tool (min 30 enforced)")
+parser.add_argument('--output_dir', default="out", help="Output root")
+parser.add_argument('--num_frames_per_tool', type=int, default=2, help="Desired frames per tool (min 30 enforced)")
 parser.add_argument('--radius_min', type=float, default=3.0, help="Min camera radius (meters)")
 parser.add_argument('--radius_max', type=float, default=12.0, help="Max camera radius (meters)")
 parser.add_argument('--target_bbox_frac', type=float, default=0.33, help="Target bbox diag as fraction of image diag")
@@ -250,8 +254,7 @@ for cls_name, blend_path in blend_jobs:
     bproc.renderer.set_output_format(enable_transparency=False)
     bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
 
-    # Frames target: at least 30 (but allow smaller for quick val by your arg)
-    frames_target = min(args.num_frames_per_tool, 30) if args.dataset_type == "train" else args.num_frames_per_tool
+    frames_target = max(args.num_frames_per_tool, 1) # at least 1
     cam_poses = []
     tries, poses = 0, 0
 

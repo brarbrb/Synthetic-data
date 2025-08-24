@@ -8,9 +8,9 @@ kpt_shape: [5, 3]
 
 # (Optional) horizontal flip symmetry pairs (0‑indexed by your keypoint order)
 # If you don’t have true left/right symmetry, leave it empty or omit.
-flip_idx: []
+flip_idx: []  #### DON"T FORGET TO UPDATE 
 
-# Class names in YOLO index order  matches the conversion used in coco_to_yolo_pose.py
+# Class names in YOLO index order  matches the conversion used in coco_to_yolo_pose.py !!!!
 names:
   0: needle_holder
   1: tweezers
