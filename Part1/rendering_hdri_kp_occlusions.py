@@ -14,7 +14,7 @@ CATEGORIES = {
         "kp_order": ["handle_end", "left_arm", "left_tip", "right_arm", "right_tip"],
         "skeleton": [[0,1],[0,3],[1,2],[3,4]],
         "swap_pairs": [[1,3],[2,4]],
-        "front_axis": "Y",
+        "front_axis": "Z",
     },
     "needle_holder": {
         "id": 1,
@@ -22,7 +22,7 @@ CATEGORIES = {
         "kp_order": ["joint", "left_handle", "left_tip", "right_handle", "right_tip"],
         "skeleton": [[0,1],[0,2],[0,3],[0,4]],
         "swap_pairs": [[1,3],[2,4]],
-        "front_axis": "Y",
+        "front_axis": "Z",
     }
 }
 
@@ -45,14 +45,16 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--dataset_type', default="val", help="train/val/test")
 parser.add_argument('--tools_root', default="tools", help="Folder containing class subfolders with .blend files")
 parser.add_argument('--camera_params', default="camera.json", help="Intrinsics JSON")
-parser.add_argument('--output_dir', default="out", help="Output root")
+parser.add_argument('--output_dir', default="tmp", help="Output root")
 parser.add_argument('--num_frames_per_tool', type=int, default=2, help="Desired frames per tool (min 1 enforced)")
 parser.add_argument('--radius_min', type=float, default=3.0, help="Min camera radius (meters)")
 parser.add_argument('--radius_max', type=float, default=12.0, help="Max camera radius (meters)")
 parser.add_argument('--target_bbox_frac', type=float, default=0.33, help="Target bbox diag as fraction of image diag")
 parser.add_argument('--max_tries', type=int, default=8000, help="Pose sampling guard")
 parser.add_argument('--haven_path', default="/datashare/project/haven/", help="Path to Poly Haven root (contains 'hdris/' subfolder)")
-# parser.add_argument('--max_front_angle_deg', type=float, default=65.0, help="Largest off-front angle allowed (0=dead front, 90=hemisphere)")
+parser.add_argument('--front_angle_deg', type=float, default=85.0,
+                    help="Max angle from front to accept (<= this = OK; > this = treat as back)")
+
 args = parser.parse_args()
 
 bproc.init()
@@ -87,14 +89,6 @@ K = np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=float)
 CameraUtility.set_intrinsics_from_K_matrix(K, W, H)
 
 # -------- Helpers --------
-# def front_view_dot(cam2world, tool_obj, front_axis="Y"):
-#     cam_loc = cam2world[:3,3]
-#     tool_center = tool_obj.get_location()
-#     to_tool = tool_center - cam_loc
-#     to_tool = to_tool / (np.linalg.norm(to_tool) + 1e-9)
-#     front_world = tool_front_dir_world(tool_obj, front_axis)
-#     return float(np.dot(front_world, to_tool))  # +1=perfect front, 0=side, -1=back
-
 def project_world(points_xyz, cam2world, K):
     """Return (N,2) pixel coords and boolean validity (in front of camera)."""
     world2cam = np.linalg.inv(cam2world)
@@ -155,64 +149,65 @@ def tool_front_dir_world(tool_obj, axis_str):
     n = d / (np.linalg.norm(d) + 1e-9)
     return n
 
-def is_back_view(cam2world, tool_obj, front_axis="Y"):
-    """True if camera is looking from the 'back' side."""
-    cam_loc = cam2world[:3,3]
+def accept_front_view(cam2world, tool_obj, front_axis, front_angle_deg):
+    cam_loc = cam2world[:3, 3]
     tool_center = tool_obj.get_location()
-    to_tool = tool_center - cam_loc
-    to_tool = to_tool / (np.linalg.norm(to_tool) + 1e-9)
+    tool_to_cam = cam_loc - tool_center
+    tool_to_cam = tool_to_cam / (np.linalg.norm(tool_to_cam) + 1e-9)
     front_world = tool_front_dir_world(tool_obj, front_axis)
-    return np.dot(front_world, to_tool) < 0.0
+    cosang = float(np.dot(front_world, tool_to_cam))
+    return cosang >= np.cos(np.deg2rad(front_angle_deg))
 
-def ray_hits_tool_first(cam_loc, pt_world, tool_mesh_names, tool_diag,
-                        max_offset=1e-3, depth_tol_ratio=2e-3):
+def is_back_view(cam2world, tool_obj, front_axis="Y"):
+    cam_loc = cam2world[:3, 3]
+    tool_center = tool_obj.get_location()
+    tool_to_cam = cam_loc - tool_center
+    tool_to_cam = tool_to_cam / (np.linalg.norm(tool_to_cam) + 1e-9)
+    front_world = tool_front_dir_world(tool_obj, front_axis)
+    return np.dot(front_world, tool_to_cam) < 0.0
+
+def ray_visible_to_point(cam_loc, pt_world, allowed_names: set[str],
+                         max_offset=1e-3, eps=1e-4) -> bool:
     """
-    Returns True (v=2) if nothing blocks the line of sight AND the first
-    surface hit is the tool AT ~the keypoint depth. Otherwise False (v=1).
-    - tool_mesh_names: set of names for ALL meshes that belong to the tool
-    - tool_diag: world scale to set a robust depth tolerance
+    Visible iff there is no hit closer than the point, or the closest hit is the tool itself.
+    We do NOT require hitting the tool; free-space up to the point is visible.
     """
     cam_loc = np.asarray(cam_loc).reshape(3,)
     pt_world = np.asarray(pt_world).reshape(3,)
 
     direction = Vector((pt_world - cam_loc).tolist())
-    dist = direction.length
-    if dist <= 1e-6:
-        return False
+    dist_to_pt = direction.length
+    if dist_to_pt <= 1e-6:
+        return True  # degenerate → visible
 
     direction.normalize()
     origin = Vector(cam_loc.tolist()) + direction * max_offset
-    max_dist = float(dist - max_offset)
 
     scene = bpy.context.scene
     depsgraph = bpy.context.evaluated_depsgraph_get()
+    # cast slightly beyond the point to be robust when KP lies on surface
+    cast_dist = float(dist_to_pt + 1e-3)
+
     hit, hit_loc, hit_norm, hit_face_idx, hit_obj, _ = scene.ray_cast(
-        depsgraph, origin, direction, distance=max_dist
+        depsgraph, origin, direction, distance=cast_dist
     )
 
-    # If nothing hit before the KP: clear line-of-sight (treat as visible)
     if not hit:
+        return True  # nothing before/at the point → visible
+
+    hit_distance = (hit_loc - origin).length
+    # if first hit is not strictly in front of the KP (within epsilon), visible
+    if hit_distance + eps >= dist_to_pt:
         return True
 
-    # Compare against the original object name to be robust to evaluated objects
+    # otherwise something sits in front; visible only if that something is part of the tool
     try:
         original = hit_obj.original
         hit_name = (original.name if original else hit_obj.name)
     except Exception:
         hit_name = hit_obj.name
 
-    # Distance of first hit vs distance to the keypoint
-    hit_dist = (hit_loc - origin).length
-    kp_dist  = max_dist
-    depth_tol = max(1e-5, depth_tol_ratio * max(1.0, tool_diag))
-
-    if hit_name in tool_mesh_names:
-        # If the first hit is the tool BUT significantly in front of the keypoint,
-        # then the tool self-occludes the KP -> not visible.
-        return abs(hit_dist - kp_dist) <= depth_tol
-    else:
-        # First hit is some other geometry (occluder) -> not visible
-        return False
+    return (hit_name in allowed_names)
 
 
 def add_random_occluders_around(tool_obj, bbox_world_pts, n_min=OCCLUDER_MIN, n_max=OCCLUDER_MAX):
@@ -324,7 +319,7 @@ for cls_name, blend_path in blend_jobs:
                 try:
                     if feat in ["Base Color","Emission Color","Coat Tint","Sheen Tint","Specular Tint"]:
                         val = tuple(random.uniform(0, 1) for _ in range(4))
-                    elif feat in ["Coat Normal","Normal","Subsurface Radius","Tangent"]:
+                    elif feat in ["Coat Normal","Normal" ,"Tangent"]:
                         val = tuple(random.uniform(0, 1) for _ in range(3))
                     else:
                         val = random.uniform(0, 1)
@@ -370,7 +365,10 @@ for cls_name, blend_path in blend_jobs:
     # Render controls — turn OFF transparency so HDRI shows
     bproc.renderer.set_max_amount_of_samples(96)
     bproc.renderer.set_output_format(enable_transparency=False)
-    bproc.renderer.enable_segmentation_output(map_by=["category_id", "instance", "name"])
+    bproc.renderer.enable_segmentation_output(
+        map_by=["category_id", "instance", "name"],
+        default_values={"category_id": None}
+    )
 
     frames_target = max(args.num_frames_per_tool, 1)
     cam_poses = []
@@ -389,9 +387,9 @@ for cls_name, blend_path in blend_jobs:
         kp_world_static.append(p)
     kp_world_static = np.array(kp_world_static)  # (K,3)
 
-    M_tool = tool.get_local2world_mat()
-    bbox_local = np.array(tool.get_bound_box())  # 8x3
-    bbox_world = (M_tool @ np.c_[bbox_local, np.ones(8)].T).T[:, :3]
+    # M_tool = tool.get_local2world_mat()
+    # bbox_local = np.array(tool.get_bound_box())  # 8x3
+    # bbox_world = (M_tool @ np.c_[bbox_local, np.ones(8)].T).T[:, :3]
 
     # --- Add occluders once per tool ---
     created_occluders = add_random_occluders_around(tool, bbox_world)
@@ -410,13 +408,22 @@ for cls_name, blend_path in blend_jobs:
         look_at = center + np.random.uniform([-0.2, -0.2, -0.2], [0.2, 0.2, 0.2])
         R = bproc.camera.rotation_from_forward_vec(look_at - loc, inplane_rot=np.random.uniform(-0.6, 0.6))
         cam2world = bproc.math.build_transformation_mat(loc, R)
-        
-        # # Enforce front-only views (allow up to max_front_angle)
-        # min_front_dot = float(np.cos(np.deg2rad(args.max_front_angle_deg)))
-        # if front_view_dot(cam2world, tool, front_axis) < min_front_dot:
-        #     tries += 1
-        #     continue
-        
+        # Must be visible (BlenderProc's coarse test)
+        if tool not in bproc.camera.visible_objects(cam2world):
+            tries += 1
+            continue
+
+        # Reject back views
+        if not accept_front_view(cam2world, tool, front_axis, args.front_angle_deg):
+            tries += 1
+            continue
+
+        # Guard against fully-occluded tool center
+        cam_loc = cam2world[:3, 3]
+        if not ray_visible_to_point(cam_loc, tool_center_world, tool_mesh_names):
+            tries += 1
+            continue
+
         # Must be visible
         if tool not in bproc.camera.visible_objects(cam2world):
             tries += 1
@@ -499,9 +506,7 @@ for cls_name, blend_path in blend_jobs:
             if not in_image(x_i, y_i, w, h):
                 v_flags.append(0)  # off image
                 continue
-            is_visible = ray_hits_tool_first(
-                cam_loc, kp_world_static[i], tool_mesh_names, tool_diag
-            )
+            is_visible = ray_visible_to_point(cam_loc, kp_world_static[i], tool_mesh_names)
             v_flags.append(2 if is_visible else 1)
 
         # Apply left/right coupled swaps if viewing from back

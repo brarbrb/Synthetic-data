@@ -14,6 +14,9 @@ CATEGORIES = {
         "kp_order": ["handle_end", "left_arm", "left_tip", "right_arm", "right_tip"],
         "skeleton": [[0,1],[0,3],[1,2],[3,4]],
         "swap_pairs": [[1,3],[2,4]],
+        "front_axis": "Z"   # which local axis is "front" (+X,+Y,+Z or -X,-Y,-Z) 
+                            # from trying different ones "Z" is the correct one!!!
+
     },
     "needle_holder": {
         "id": 1,
@@ -21,6 +24,7 @@ CATEGORIES = {
         "kp_order": ["joint", "left_handle", "left_tip", "right_handle", "right_tip"],
         "skeleton": [[0,1],[0,2],[0,3],[0,4]],
         "swap_pairs": [[1,3],[2,4]],
+        "front_axis": "Z"
     }
 }
 # -------- Args --------
@@ -29,14 +33,16 @@ parser.add_argument('--dataset_type', default="val", help="train/val/test")
 parser.add_argument('--tools_root', default="tools", help="Folder containing class subfolders with .blend files")
 parser.add_argument('--camera_params', default="camera.json", help="Intrinsics JSON")
 parser.add_argument('--output_dir', default="out", help="Output root")
-parser.add_argument('--num_frames_per_tool', type=int, default=2, help="Desired frames per tool (min 30 enforced)")
+parser.add_argument('--num_frames_per_tool', type=int, default=5, help="Desired frames per tool (min 30 enforced)")
 parser.add_argument('--radius_min', type=float, default=3.0, help="Min camera radius (meters)")
 parser.add_argument('--radius_max', type=float, default=12.0, help="Max camera radius (meters)")
 parser.add_argument('--target_bbox_frac', type=float, default=0.33, help="Target bbox diag as fraction of image diag")
 parser.add_argument('--max_tries', type=int, default=8000, help="Pose sampling guard")
+parser.add_argument('--front_angle_deg', type=float, default=85.0, help="Max angle from front to accept (<= this = OK; > this = treat as back)")
+
 args = parser.parse_args()
 
-bproc.init()
+bproc.init(clean_up_scene=True)
 # Render controls - needed once per running :) 
 bproc.renderer.set_max_amount_of_samples(96)
 bproc.renderer.set_output_format(enable_transparency=True)
@@ -60,7 +66,22 @@ K = np.array([[fx, 0,  cx],
               [0,  0,  1]], dtype=float)
 CameraUtility.set_intrinsics_from_K_matrix(K, W, H)
 
+
 # -------- Helpers --------
+def _axis_vec(axis_str: str) -> np.ndarray:
+    # axis_str like "X","Y","Z","-X","-Y","-Z"
+    s = axis_str.strip().upper()
+    sign = -1.0 if s.startswith('-') else 1.0
+    a = s[-1]
+    base = {'X': np.array([1.0,0.0,0.0]),
+            'Y': np.array([0.0,1.0,0.0]),
+            'Z': np.array([0.0,0.0,1.0])}[a]
+    return sign * base
+
+def _normalize(v: np.ndarray) -> np.ndarray:
+    n = float(np.linalg.norm(v))
+    return v / n if n > 1e-12 else v
+
 def project_world(points_xyz, cam2world, K):
     """Return (N,2) pixel coords and boolean validity (in front of camera)."""
     world2cam = np.linalg.inv(cam2world)
@@ -227,6 +248,11 @@ for cls_name, blend_path in blend_jobs:
     M_tool = tool.get_local2world_mat()
     bbox_local = np.array(tool.get_bound_box())  # 8x3
     bbox_world = (M_tool @ np.c_[bbox_local, np.ones(8)].T).T[:, :3]
+    front_axis = spec.get("front_axis", "Y")
+    front_local = _axis_vec(front_axis)
+    R_tool = M_tool[:3, :3]                 # rotation part
+    front_world = _normalize(R_tool @ front_local)  # tool's "front" in world coords
+
 
     # Pose sampling
     while tries < args.max_tries and poses < frames_target:
@@ -242,6 +268,19 @@ for cls_name, blend_path in blend_jobs:
         R = bproc.camera.rotation_from_forward_vec(look_at - loc,
                                                    inplane_rot=np.random.uniform(-0.6, 0.6))
         cam2world = bproc.math.build_transformation_mat(loc, R)
+        
+        # Camera → tool direction (what the camera is looking toward)
+        view_dir = _normalize(tool.get_location() - loc)
+
+        # Angle between tool front and camera view direction
+        view_dir = _normalize(tool.get_location() - loc)  
+        cos_thresh = np.cos(np.deg2rad(args.front_angle_deg))
+        cosang = -float(np.dot(front_world, view_dir))    # negate to turn "front" positive
+
+        if cosang < cos_thresh:
+            # Too far around the back → reject pose
+            tries += 1
+            continue
 
         # Must be visible
         if tool not in bproc.camera.visible_objects(cam2world):
