@@ -165,8 +165,8 @@ def draw_overlay(img_bgr: np.ndarray,
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--coco", default="tmp/val/coco_keypoints.json", help="Path to COCO JSON")
-    ap.add_argument("--images_root", default="tmp/val", help="Root folder containing the image files")
+    ap.add_argument("--coco", default="data/train/coco_keypoints.json", help="Path to COCO JSON")
+    ap.add_argument("--images_root", default="data/train", help="Root folder containing the image files")
     ap.add_argument("--image_file", default="images/000001.png",
                     help="Relative path to the PNG inside images_root (e.g., images/000000.png)")
     ap.add_argument("--out_overlay", default="overlay.png", help="Where to save the overlay image")

@@ -2,6 +2,7 @@
 import json, os, pathlib
 
 def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None):
+    # cat_id_to_cls - to be more modular because coco_keypoints have another categories id 
     split_dir = pathlib.Path(split_dir)
     img_dir = split_dir / "images"
     lbl_dir = split_dir / "labels"
@@ -14,8 +15,7 @@ def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None
         cats = sorted({a["category_id"] for a in coco["annotations"]})
         cat_id_to_cls = {cid:i for i,cid in enumerate(cats)}
 
-    # Group annotations by image
-    ann_by_img = {}
+    ann_by_img = {} # grouping annotations by image for mapping
     for a in coco["annotations"]:
         ann_by_img.setdefault(a["image_id"], []).append(a)
 
@@ -38,6 +38,7 @@ def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None
                 kx = kps[i] / w
                 ky = kps[i+1] / h
                 kv = int(kps[i+2])
+                
                 # Clamp to [0,1] if numeric drift; keep visibility as is
                 kx = min(max(kx, 0.0), 1.0)
                 ky = min(max(ky, 0.0), 1.0)
@@ -54,6 +55,6 @@ def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None
 
 if __name__ == "__main__":
     # Train split
-    convert_split("out/train")
+    convert_split("data/train")
     # Val split
-    convert_split("out/val")
+    convert_split("data/val")

@@ -39,11 +39,11 @@ OCCLUDER_TYPES = ("CUBE", "PLANE")   # choose from: CUBE / PLANE / CYLINDER (cyl
 
 # -------- Args --------
 parser = argparse.ArgumentParser()
-parser.add_argument('--dataset_type', default="val", help="train/val/test")
-parser.add_argument('--tools_root', default="tools", help="Folder containing class subfolders with .blend files")
+parser.add_argument('--dataset_type', default="train", help="train/val/test")
+parser.add_argument('--tools_root', default="tools_blend", help="Folder containing class subfolders with .blend files")
 parser.add_argument('--camera_params', default="camera.json", help="Intrinsics JSON")
 parser.add_argument('--output_dir', default="out", help="Output root")
-parser.add_argument('--num_frames_per_tool', type=int, default=5, help="Desired frames per tool (min 1 enforced)")
+parser.add_argument('--num_frames_per_tool', type=int, default=30, help="Desired frames per tool (min 1 enforced)")
 parser.add_argument('--radius_min', type=float, default=3.0, help="Min camera radius (meters)")
 parser.add_argument('--radius_max', type=float, default=12.0, help="Max camera radius (meters)")
 parser.add_argument('--target_bbox_frac', type=float, default=0.33, help="Target bbox diag as fraction of image diag")

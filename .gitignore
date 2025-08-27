@@ -1,5 +1,14 @@
-tools
+tools_blend
 output
 work_dirs
 out
 tmp
+mask.png
+overlay.png
+Part2/runs
+Part2/yolov8m-pose.pt
+Part2/yolo11l-pose.pt
+Part2/weights_phase2.pt
+data
+Part2/4_2_24_A_1_small_000
+Part2/annotations
