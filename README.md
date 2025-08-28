@@ -26,9 +26,11 @@ This repository develops a **2D pose estimation system** for surgical instrument
 ## 📁 Repository Structure
 ```text
 .
-├─ synthetic/                    # Phase 1: data generation
-│  ├─ synthetic_data_generator.py
-│  └─ configs/                   # blender/blenderproc, camera, lighting, etc.
+├─ Part1/                    
+│  ├─ rendering_{type of rendering}.py     - there are multiple files that create different kinds of rendering
+|  ├─ obj_features.py              - Exploring provided .obj and .mtl files
+|  ├─ overlay_coco_kps.py         - draws key points on images of tools
+|  ├─ paste_on_random_background.py
 ├─ training/                     # Phase 2: training on synthetic
 │  ├─ train.py
 │  ├─ data/                      # YOLO/MMPose datasets (symlinks or copies)
