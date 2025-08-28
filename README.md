@@ -25,7 +25,7 @@ This repository develops a **2D pose estimation system** for surgical instrument
 
 ## 📁 Repository Structure
 
-
+`
 ├─ synthetic/ # Phase 1: data generation
 │ ├─ synthetic_data_generator.py
 │ └─ configs/ # blender/blenderproc, camera, lighting, etc.
@@ -43,6 +43,7 @@ This repository develops a **2D pose estimation system** for surgical instrument
 ├─ requirements.txt
 ├─ README.md
 └─ LICENSE
+`
 # Synthetic-data
 
 Installation of BlenderProc: 
