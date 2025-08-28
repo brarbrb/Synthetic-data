@@ -42,7 +42,7 @@ Due to file size limitation we uploaded both videos to the following One Drive f
 
 ## 📷 Video and Images and Prediction Scripts
 
-`video.py` - This script runs YOLO object for pose detection on a video file and saves the annotated result as an output video.
+`video.py` - This script runs YOLO object for pose detection on a video file and saves the annotated result as an output video. (using OpenCV)
 
 ###  Run on a Video File
 ```bash
@@ -90,10 +90,12 @@ python video.py \
 │  ├─prepare_datasets.py            - frames we picked as pseudo_labels in refinement step 
 │  └─ runs_refined/
 |
-├─ inference/
-│  ├─ predict.py                 - image inference
-│  └─ video.py                   - video inference (OpenCV)
+├─ final_model_eval/
+│  ├─ results_refined_on_small.mp4       - labels we got after Phase 3 refinements. Note it run on lower qulity video so the the performance is worse!                 
+│  └─ predictions/
+|     └─ annotated_image.png          - annotated images after  Phase 3 refinements                
 |
+| final_model_eval/predictions
 ├─ rendered_imgs_exampless/  - folder with examples of different renderings
 │  ├─ ...
 │  └─ images.png       
