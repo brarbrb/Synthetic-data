@@ -5,7 +5,6 @@ from tqdm import tqdm
 
 
 def run_video(weights, source, output):
-    # Load YOLO model
     model = YOLO(weights)
 
     # Open video source (file or webcam index)
@@ -19,7 +18,6 @@ def run_video(weights, source, output):
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    # Video writer
     fourcc = cv2.VideoWriter_fourcc(*"mp4v")
     out = cv2.VideoWriter(output, fourcc, fps, (width, height))
 
@@ -29,11 +27,8 @@ def run_video(weights, source, output):
             if not ret:
                 break
 
-            # Run YOLO prediction
             results = model.predict(frame, verbose=False)
             annotated = results[0].plot()
-
-            # Write frame to output video
             out.write(annotated)
             pbar.update(1)
             
@@ -46,8 +41,8 @@ def run_video(weights, source, output):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run YOLO predictions on a video and save output.")
     parser.add_argument("--weights", type=str, default="part3_best.pt", help="Path to YOLO weights file")
-    parser.add_argument("--source", type=str, default="/datashare/project/vids_test/4_2_24_A_1_small.mp4", help="Path to input video or webcam index")
-    parser.add_argument("--output", type=str, default="final_model_eval/4_2_24_A_1_small.mp4", help="Path to save output video")
+    parser.add_argument("--source", type=str, default="/datashare/project/vids_test/4_2_24_A_1.mp4", help="Path to input video or webcam index")
+    parser.add_argument("--output", type=str, default="results_refined.mp4", help="Path to save output video")
     args = parser.parse_args()
 
     run_video(args.weights, args.source, args.output)
