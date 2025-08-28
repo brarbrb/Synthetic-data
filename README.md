@@ -40,10 +40,10 @@ Phase 2 weights: [Download part 2 weights](https://raw.githubusercontent.com/bra
 Phase 3 weights: [Download part 3 weights](https://raw.githubusercontent.com/brarbrb/Synthetic-data/main/part3_best.pt)
 
 Videos:
+Due to file size limitation we uploaded both videos to the following One Drive folder:
+[One Drive link](https://technionmail-my.sharepoint.com/:f:/g/personal/galavidar_campus_technion_ac_il/Eh-3eWUM5yhAuNl11KZu-Y4BLaKgtJOIW6KxJa1k71yN-w?e=yV6pUz)
 
-results_synthetic_only.mp4
-
-results_refined.mp4
+in this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them.
 
 ## 📁 Repository Structure 
 ```text
