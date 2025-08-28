@@ -1,5 +1,5 @@
 # Computer Vision for Surgical Tools — 2D Pose Estimation 
-(based on synth. data only)
+(Estimations using synthetic images only)
 
 <p align="center">
   <b>Phase 1:</b> Synthetic Data &nbsp;•&nbsp;
