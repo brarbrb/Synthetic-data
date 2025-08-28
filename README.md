@@ -87,6 +87,7 @@ python video.py \
 |
 ├─ Part3/                   
 │  ├─ refine.ipynb                  - pseudo-label loop
+│  ├─prepare_datasets.py            - frames we picked as pseudo_labels in refinement step 
 │  └─ runs_refined/
 |
 ├─ inference/
@@ -101,9 +102,9 @@ python video.py \
 ├─ video.py
 ├─ predict.py 
 ├─ requirements.txt
-├─ part2_best.pt        - weights from yolov8s only on synth data  
+├─ part2_best.pt          - weights from yolov8s only on synth data  
 ├─ part3_best.pt          - yolov8s after refinement - had the best performance
-├─ camera.json       - intrinsics for rendering
+├─ camera.json            - intrinsics for rendering
 └─ README.md
 ```
 Provided resources (we had on the VM in /datashare/project):
