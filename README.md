@@ -101,6 +101,8 @@ python video.py \
 ├─ video.py
 ├─ predict.py 
 ├─ requirements.txt
+├─ part2_best.pt        - weights from yolov8s only on synth data  
+├─ part3_best.pt          - yolov8s after refinement - had the best performance
 ├─ camera.json       - intrinsics for rendering
 └─ README.md
 ```
