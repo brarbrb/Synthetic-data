@@ -60,11 +60,11 @@ results_refined.mp4
 ├─ inference/
 │  ├─ predict.py                 - image inference
 │  └─ video.py                   - video inference (OpenCV)
+├─ sample images/.png       - folder with examples of different renderings
+├─ synthetic_data_generator.py       - renders .blend files + calculates kp position  + adds random occluders + saves in coco
 ├─ requirements.txt
-├─ README.md
 ├─ camera.json       - intrinsics for rendering
-├─ sample images       - folder with examples of different renderings (.png files)
-└─ LICENSE
+└─ README.md
 ```
 Provided resources (we had on the VM in /datashare/project):
 
