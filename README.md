@@ -199,6 +199,6 @@ Steps:
 
 ![both](Part3/both_refined.png)
 ![tweezers](Part3/tweezers_refined.png)
-![NH](Part3/nedle_holder_refined.png)
+![NH](Part3/needle_holder_refined.png)
 
 
