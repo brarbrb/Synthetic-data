@@ -32,18 +32,20 @@ This repository develops a **2D pose estimation system** for surgical instrument
 |  ├─ overlay_coco_kps.py         - draws key points on images of tools
 |  └─ paste_on_random_background.py
 ├─ Part2/                      
-│  ├─ train.py
-│  ├─ data_config.yaml                      # YOLO/MMPose datasets (symlinks or copies)
-│  └─ runs/                      # logs, checkpoints, metrics (automatic yolo logs) 
-├─ Part3/                   # Phase 3: unsupervised domain adaptation
-│  ├─ refine.py                  # pseudo-label loop
+│  ├─ training_model.ipynb 
+│  ├─ data_config.yaml
+│  ├─ coco_to_yolo_pose.py        - converter from coco annotations to yolo
+│  └─ runs/                      - logs, checkpoints, metrics (automatic yolo logs) 
+├─ Part3/                   
+│  ├─ refine.ipynb                  - pseudo-label loop
 │  └─ runs_refined/
 ├─ inference/
-│  ├─ predict.py                 # image inference
-│  └─ video.py                   # video inference (OpenCV)
+│  ├─ predict.py                 - image inference
+│  └─ video.py                   - video inference (OpenCV)
 ├─ requirements.txt
 ├─ README.md
 ├─ camera.json       - intrinsics for rendering
+├─ sample images       - folder with examples of different renderings (.png files)
 └─ LICENSE
 ```
 Provided resources (we had on the VM in /datashare/project):
