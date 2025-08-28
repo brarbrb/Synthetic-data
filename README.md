@@ -57,56 +57,13 @@ Provided resources (we had on the VM in /datashare/project):
  - Unlabeled videos: (4_2_24_A_1.mp4, etc.)
 
 
-# Synthetic-data
-
-Installation of BlenderProc: 
-
-```conda create -n synth python=3.10
-
-conda activate synth
-
-pip install blenderproc
-
-blenderproc quickstart
-```
-# Best models for this task
-1.  HRNet - Backbone that keeps high-resolution feature maps all the way through the network.
-
-    Excellent accuracy for fine spatial localization (important for small keypoints like tool tips).
-
-    There's open pose which is good for few objects on same image 
-
-2. Top-down models (Keypoint R-CNN, YOLO-pose, RTMPose, ViTPose)
-
-    First detect each object with a bounding box.
-
-    Then run a pose head on the cropped image to get its keypoints.
-
-    Usually more accurate for small or thin objects (like tweezers).
-
-3.  Top-down models (Keypoint R-CNN, YOLO-pose, RTMPose, ViTPose)
-
-    First detect each object with a bounding box.
-
-    Then run a pose head on the cropped image to get its keypoints.
-
-    Usually more accurate for small or thin objects (like tweezers).
-
-### EDA results:
-tweezers have only one material to work cand change, whilst the needle holder has two ptoperties that can vary.
-
-
-Note: change location, scale, and rotation!
-
-
-### Saving the dataset - correct format
-For 2D pose estimation with two object classes (needle holder and tweezers) and synthetic data you’re generating yourself, the trick is to save the dataset in one general, model-agnostic format so you can later convert it to whatever a specific model requires.
-That way, you only do the annotation once and can reformat as needed.
+### Saving the datasets
+For 2D pose estimation with two object classes (needle holder and tweezers) and synthetic data it ws important to save the dataset in one general, model-agnostic format so we coudld later convert it to whatever a specific model requires.
 
 Our final structure is: 
 1. For annotations: COCO format (JSON) – supports multiple objects per image, multiple keypoints per object, segmentation masks if needed.
 
-2. We used next folder structure:
+2. We used next folder structure: (we converted it later to yolo format) 
 ```
 dataset/
 │
@@ -118,14 +75,7 @@ dataset/
 │   ├── val/
 │   └── test/
 │
-├── annotations/
-│   ├── train_coco.json   # COCO-style annotations for training
-│   ├── val_coco.json
-│   └── test_coco.json
-│
-└── meta/
-    ├── class_names.txt   # ["needle_holder", "tweezers"]
-    └── keypoints.txt     # ["tip", "joint", "handle_end", ...]
+└── coco_keypoints.json COCO-style annotations for training
 ```
 
 4. Our annotations were saved in coco-jsonlike this: 
@@ -150,25 +100,29 @@ dataset/
     {
       "id": 1,
       "name": "needle_holder",
-      "keypoints": ["tip_left", "tip_right", "joint", "handle_left", "handle_right"],
-      "skeleton": [[1, 2], [2, 3], [3, 4], [3, 5]]
+      "keypoints": ["joint","left_handle","left_tip","right_handle","right_tip"],
+      "skeleton": [[0, 1], [0, 2], [0, 3], [0, 4]]   
     },
     {
       "id": 2,
       "name": "tweezers",
-      "keypoints": ["tip_left", "tip_right", "handle"],
-      "skeleton": [[1, 3], [2, 3]]
+      "keypoints": ["handle_end","left_arm","left_tip","right_arm","right_tip"],
+      "skeleton": [[0, 1], [0, 2], [1, 3], [2, 4]]
     }
   ]
 }
 ```
 
-v in keypoints is visibility:
 
-0 = not labeled,
+# Synthetic-data
 
-1 = labeled but not visible,
+Installation of BlenderProc: 
 
-2 = labeled & visible.
+```conda create -n synth python=3.10
 
-skeleton defines how the keypoints are connected in visualization.
+conda activate synth
+
+pip install blenderproc
+
+blenderproc quickstart
+```
