@@ -1,3 +1,33 @@
+# Computer Vision for Surgical Tools — 2D Pose Estimation
+
+<p align="center">
+  <b>Phase 1:</b> Synthetic Data &nbsp;•&nbsp;
+  <b>Phase 2:</b> Train & Evaluate &nbsp;•&nbsp;
+  <b>Phase 3:</b> Unsupervised Refinement on Real Video
+</p>
+
+[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)]()
+[![PyTorch](https://img.shields.io/badge/PyTorch-✔-orange.svg)]()
+[![BlenderProc](https://img.shields.io/badge/BlenderProc-✔-brightgreen.svg)]()
+
+---
+
+## 📌 Project Intro
+
+This repository develops a **2D pose estimation system** for surgical instruments using synthetic data first, then adapts to real, unlabeled videos.
+
+- **Goal:** Detect per-tool keypoints and poses in 2D images/videos.
+- **Key challenges:** Occlusion, articulation, domain gap, and real-time constraints.
+- **Approach:** Synthetic data ➜ train on synthetic ➜ refine on unlabeled real video (self-training / pseudo-labels).
+
+---
+
+## 📁 Repository Structure
+
+
+
+
+
 # Synthetic-data
 
 Installation of BlenderProc: 
