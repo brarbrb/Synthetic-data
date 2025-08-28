@@ -43,7 +43,10 @@ Videos:
 Due to file size limitation we uploaded both videos to the following One Drive folder:
 [One Drive link](https://technionmail-my.sharepoint.com/:f:/g/personal/galavidar_campus_technion_ac_il/Eh-3eWUM5yhAuNl11KZu-Y4BLaKgtJOIW6KxJa1k71yN-w?e=yV6pUz)
 
-in this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them.
+### ⚠️ Important Notes
+1. In this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them.
+2. The video `results_synthetic_only.mp4` has only 10% of frames of the video labeled. Almost invisible!
+   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We 
 
 ## 📷 Video and Images and Prediction Scripts
 
