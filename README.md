@@ -34,6 +34,12 @@ Videos:
 Due to file size limitation we uploaded both videos to the following One Drive folder:
 [One Drive link](https://technionmail-my.sharepoint.com/:f:/g/personal/galavidar_campus_technion_ac_il/Eh-3eWUM5yhAuNl11KZu-Y4BLaKgtJOIW6KxJa1k71yN-w?e=yV6pUz)
 
+We added the results on low quality video (4_2_24_A_1_small.mp4) in `final_model_eval` folder: 
+[results_synthetic_only_on_small](final_model_eval/results_synthetic_only_on_small.mp4)
+[results_refined_on_small.mp4](final_model_eval/results_refined_on_small.mp4) 
+
+Due to lower quality the perfomance is much worse on them!
+
 ### ⚠️ Important Notes
 1. In this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them!
    
