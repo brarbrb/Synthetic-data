@@ -29,10 +29,10 @@ OCCLUDER_TYPES = ("CUBE", "PLANE")
 
 # ---------- Args ----------
 p = argparse.ArgumentParser()
-p.add_argument('--dataset_type', default="train")
+p.add_argument('--dataset_type', default="val")
 p.add_argument('--tools_root', default="tools_blend")
 p.add_argument('--camera_params', default="camera.json")
-p.add_argument('--output_dir', default="data")
+p.add_argument('--output_dir', default="part3_data")
 p.add_argument('--num_frames_per_tool', type=int, default=2)
 p.add_argument('--radius_min', type=float, default=3.0)
 p.add_argument('--radius_max', type=float, default=12.0)
@@ -377,8 +377,10 @@ target_diag = args.target_bbox_frac * img_diag
 cos_thresh = float(np.cos(np.deg2rad(args.front_angle_deg)))
 
 for cls_name, blend_path in blend_jobs:
-    if cls_name == "tweezers":
-        continue
+    # if cls_name == "tweezers" or blend_path.endswith("NH1.blend") or blend_path.endswith("NH10.blend") \
+    #     or blend_path.endswith("NH11.blend") or blend_path.endswith("NH12.blend") or blend_path.endswith("NH13.blend")\
+    #         or blend_path.endswith("NH14.blend") or blend_path.endswith("NH15.blend") or blend_path.endswith("NH2.blend"):
+    #     continue
     spec = CATEGORIES[cls_name]
     kp_names = spec["kp_order"]
     swap_pairs = spec.get("swap_pairs", [])

@@ -113,3 +113,7 @@ v in keypoints is visibility:
 2 = labeled & visible.
 
 skeleton defines how the keypoints are connected in visualization.
+
+
+
+blend_path.endswith("NH10.blend")

@@ -32,8 +32,8 @@ p = argparse.ArgumentParser()
 p.add_argument('--dataset_type', default="val")
 p.add_argument('--tools_root', default="tools_blend")
 p.add_argument('--camera_params', default="camera.json")
-p.add_argument('--output_dir', default="data")
-p.add_argument('--num_frames_per_tool', type=int, default=3)
+p.add_argument('--output_dir', default="part3_data") 
+p.add_argument('--num_frames_per_tool', type=int, default=2)
 p.add_argument('--radius_min', type=float, default=3.0)
 p.add_argument('--radius_max', type=float, default=12.0)
 p.add_argument('--target_bbox_frac', type=float, default=0.33)
@@ -323,7 +323,9 @@ cos_thresh = float(np.cos(np.deg2rad(args.front_angle_deg)))
 
 # ---------- Main loop ----------
 for cls_name, blend_path in blend_jobs:
-    if cls_name == "tweezers" or blend_path.endswith("NH12.blend") or blend_path.endswith("NH1.blend") or blend_path.endswith("NH10.blend") or blend_path.endswith("NH11.blend"):
+    if cls_name == "tweezers" or blend_path.endswith("NH1.blend") or blend_path.endswith("NH10.blend") \
+        or blend_path.endswith("NH11.blend") or blend_path.endswith("NH12.blend") or blend_path.endswith("NH13.blend")\
+            or blend_path.endswith("NH14.blend"):
         continue
     spec = CATEGORIES[cls_name]
     kp_names, swap_pairs = spec["kp_order"], spec.get("swap_pairs", [])

@@ -13,7 +13,7 @@ def main():
     parser.add_argument("-i",
                         "--images",
                         type=str,
-                        default="data/val/images", #change  if on validate
+                        default="part3_data/val/images", #change  if on validate
                         help="Path to object images to paste.")
     parser.add_argument("-b",
                         "--backgrounds",

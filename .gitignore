@@ -8,7 +8,14 @@ overlay.png
 Part2/runs
 Part2/yolov8m-pose.pt
 Part2/yolo11l-pose.pt
-Part2/weights_phase2.pt
+weights_phase2.pt
 data
 Part2/4_2_24_A_1_small_000
 Part2/annotations
+img_from_vid
+detections
+fine_tune
+part3_data
+bin
+eval
+Part3/runs

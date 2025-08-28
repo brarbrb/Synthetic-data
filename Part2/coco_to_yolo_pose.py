@@ -55,6 +55,6 @@ def convert_split(split_dir, json_name="coco_keypoints.json", cat_id_to_cls=None
 
 if __name__ == "__main__":
     # Train split
-    convert_split("data/train")
+    convert_split("part3_data/train")
     # Val split
-    convert_split("data/val")
+    convert_split("part3_data/val")
