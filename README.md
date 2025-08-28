@@ -34,7 +34,8 @@ This repository develops a **2D pose estimation system** for surgical instrument
 ---
 ## ⬇️ Weights & Artifacts
 
-Phase 2 weights: <link>
+Phase 2 weights: [Download part2 weights](https://raw.githubusercontent.com/brarbrb/Synthetic-data/part2/runs/pose/train/weights/best.pt)
+
 
 Phase 3 weights: <link>
 
