@@ -195,8 +195,3 @@ Steps:
 1. Model improved significantly.
 2. It now detects most instruments in the video.
 3. Pose estimation is not perfect, but good enough given the domain gap
-
-![part3 frame](sample images/frame_0000237.jpg)
-![part3 frame](sample images/frame_0001539.jpg)
-![part3 frame](sample images/frame_0002678.jpg)
-![part3 frame](sample images/frame_0003500.jpg)
