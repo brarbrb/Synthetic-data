@@ -23,15 +23,6 @@ This repository develops a **2D pose estimation system** for surgical instrument
 - **Approach:** Synthetic data ➜ train on synthetic ➜ refine on unlabeled real video (self-training / pseudo-labels).
 
 ---
-
-**The project was splitted into 3 phases (parts):**
-1. Synthetic Data Generation
-
-2.  Training and first Evalution
-
-3.  Refinement (with pseudo labels) and final evaluation
-
----
 ## ⬇️ Weights & Artifacts
 
 Phase 2 weights: [Download part 2 weights](https://raw.githubusercontent.com/brarbrb/Synthetic-data/main/part2_best.pt)
@@ -47,7 +38,7 @@ Due to file size limitation we uploaded both videos to the following One Drive f
 1. In this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them!
    
 2. The video `results_synthetic_only.mp4` has only 10% of frames of the video labeled. Almost invisible!
-   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We saved  the annotated images and labels in Part3/fine_tune/pseudo_v1 (we can't upload it due to weight restrictions)
+   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We saved the annotated images and labels in Part3/fine_tune/pseudo_v1 on vm (we can't upload it due to weight restrictions)
 
 ## 📷 Video and Images and Prediction Scripts
 
@@ -107,6 +98,8 @@ python video.py \
 │  └─ images.png       
 |
 ├─ synthetic_data_generator.py       - renders .blend files + calculates kp position  + adds random occluders + saves in coco
+├─ video.py
+├─ predict.py 
 ├─ requirements.txt
 ├─ camera.json       - intrinsics for rendering
 └─ README.md
