@@ -186,10 +186,10 @@ Strategy: unsupervised refinement using pseudo-labels.
 
 Steps:
 
-1. Ran inference with run_pred.py on real video → saved all frames with any detection.
-2. Used refine.ipynb to collect ~120 best pseudo-labeled frames.
-3. Added extra forced-occlusion images (200 train + 100 val) to strengthen robustness.
-4. Retrained using only yolov8s-pose (lighter, similar performance to m).
+- Ran inference with run_pred.py on real video → saved all frames with any detection.
+- Used refine.ipynb to collect ~120 best pseudo-labeled frames.
+- Added extra forced-occlusion images (200 train + 100 val) to strengthen robustness.
+- Retrained using only yolov8s-pose (lighter, similar performance to m).
 
 **Final Results:**
 1. Model improved significantly.
