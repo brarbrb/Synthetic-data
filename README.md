@@ -131,3 +131,25 @@ dataset/
 }
 ```
 
+---
+# The work flow
+
+## Phase 1 — Synthetic Data Generation
+
+**What we did:**
+
+ 1. Defined keypoints for each instrument (using Blend)
+ 2. Created multiple BlenderProc rendering pipelines:
+   - rendering_KP.py and rendering_hdri_KP.py: no occlusions.
+   - rendering_kp_occlusions.py and rendering_hdri_kp_occlusions.py: added random occluders.
+   - additional_rendering.py: most helpful script, added material variations and forced at least one keypoint occluded. - this is what is saved explicitly in `synthetic_data_generator.py` 
+
+3. Generated 1500–2500 synthetic images with variations in pose, articulation, lighting, and backgrounds.
+
+**Findings:**
+
+- Models trained only on synthetic data with no occlusions achieved perfect results on synthetic validation, but failed completely on real video (thanks to the domain gap).
+
+- Adding occlusions helped slightly but was not enough.
+
+- The most useful change was additional rendering with occluded keypoints and domain-specific material tuning.
