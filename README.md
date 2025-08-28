@@ -84,16 +84,14 @@ Our final structure is:
 2. We used next folder structure: (we converted it later to yolo format) 
 ```
 dataset/
-│
-├── images/
-│   ├── train/
-│   │   ├── img_00001.jpg
-│   │   ├── img_00002.jpg
+├── train/
+│   ├── images/
+│   │   ├── img_00001.png
+│   │   ├── img_00002.png
 │   │   └── ...
-│   ├── val/
-│   └── test/
+│   └── coco_keypoints.json COCO-style annotations for training
 │
-└── coco_keypoints.json COCO-style annotations for training
+└── val/   # the same structure here
 ```
 
 4. Our annotations were saved in coco-jsonlike this: 
