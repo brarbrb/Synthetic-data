@@ -197,6 +197,8 @@ Steps:
 2. It now detects most instruments in the video.
 3. Pose estimation is not perfect, but good enough given the domain gap
 
-![tweezers](Part3/tweezers.jpg)
-![needle holder](Part3/needle_holder.jpg)
+![both](Part3/both_refined.png)
+![tweezers](Part3/tweezers_refined.png)
+![NH](Part3/nedle_holder_refined.png)
+
 
