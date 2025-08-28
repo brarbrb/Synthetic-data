@@ -86,13 +86,15 @@ python video.py \
 │  └─ runs/                      - logs, checkpoints, metrics (automatic yolo logs)
 |
 ├─ Part3/                   
-│  ├─ refine.ipynb                  - pseudo-label loop
+│  ├─ refine.ipynb                  - pseudo-label loop and configs in yaml
+│  ├─ pseudo_data.yaml        
 │  ├─prepare_datasets.py            - frames we picked as pseudo_labels in refinement step 
-│  └─ runs_refined/
+│  └─ some_images
 |
 ├─ final_model_eval/
 │  ├─ results_refined_on_small.mp4       - labels we got after Phase 3 refinements. Note it run on lower qulity video so the the performance is worse!                 
 │  └─ predictions/
+│     ├─ ...
 |     └─ annotated_image.png          - annotated images after  Phase 3 refinements                
 |
 | final_model_eval/predictions
