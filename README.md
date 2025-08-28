@@ -153,3 +153,44 @@ dataset/
 - Adding occlusions helped slightly but was not enough.
 
 - The most useful change was additional rendering with occluded keypoints and domain-specific material tuning.
+
+## Phase 2 — Training & First Evaluation
+
+1. Used YOLOv8 keypoint models (yolov8s-pose and yolov8m-pose).
+
+2. Augmentations tuned to surgical domain (scale, translate, perspective, HSV).
+
+3. Training parameters (example):
+
+python training/train.py \
+  --data_dir synthetic/output \
+  --epochs 100 \
+  --batch 16 \
+  --imgsz 960 \
+  --weights yolov8s-pose.pt
+
+
+4. Experiments:
+
+ - yolov8s-pose trained on 1500 no-occlusion images → good synthetic accuracy, but 0 detections on real video.
+
+ - yolov8m-pose trained on 2500 occlusion images → also failed on real video.
+
+After retraining with additional_rendering.py + domain-specific augmentations →
+both models started detecting something in ~10% of frames on real video. 
+
+## Phase 3 — Refinement & Final Evaluation
+
+Strategy: unsupervised refinement using pseudo-labels.
+
+Steps:
+
+1. Ran inference with run_pred.py on real video → saved all frames with any detection.
+2. Used refine.ipynb to collect ~120 best pseudo-labeled frames.
+3. Added extra forced-occlusion images (200 train + 100 val) to strengthen robustness.
+4. Retrained using only yolov8s-pose (lighter, similar performance to m).
+
+**Final Results:**
+1. Model improved significantly.
+2. It now detects most instruments in the video.
+3. Pose estimation is not perfect, but good enough given the domain gap
