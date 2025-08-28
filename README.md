@@ -28,6 +28,18 @@ The project was splitted into 3 phases (parts):
 2. Phase 2: model choice, training details, results
 
 3. Phase 3: refinement strategy, comparison, challenges
+---
+## ⬇️ Weights & Artifacts
+
+Phase 2 weights: <link>
+
+Phase 3 weights: <link>
+
+Videos:
+
+results_synthetic_only.mp4
+
+results_refined.mp4
 
 ## 📁 Repository Structure 
 ```text
