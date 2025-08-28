@@ -44,9 +44,10 @@ Due to file size limitation we uploaded both videos to the following One Drive f
 [One Drive link](https://technionmail-my.sharepoint.com/:f:/g/personal/galavidar_campus_technion_ac_il/Eh-3eWUM5yhAuNl11KZu-Y4BLaKgtJOIW6KxJa1k71yN-w?e=yV6pUz)
 
 ### ⚠️ Important Notes
-1. In this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them.
+1. In this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them!
+   
 2. The video `results_synthetic_only.mp4` has only 10% of frames of the video labeled. Almost invisible!
-   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We 
+   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We saved  the annotated images and labels in Part3/fine_tune/pseudo_v1 (we can't upload it due to weight restrictions)
 
 ## 📷 Video and Images and Prediction Scripts
 
@@ -86,18 +87,25 @@ python video.py \
 |  ├─ obj_features.py              - Exploring provided .obj and .mtl files
 |  ├─ overlay_coco_kps.py         - draws key points on images of tools
 |  └─ paste_on_random_background.py
+|
 ├─ Part2/                      
 │  ├─ training_model.ipynb 
 │  ├─ data_config.yaml
 │  ├─ coco_to_yolo_pose.py        - converter from coco annotations to yolo
-│  └─ runs/                      - logs, checkpoints, metrics (automatic yolo logs) 
+│  └─ runs/                      - logs, checkpoints, metrics (automatic yolo logs)
+|
 ├─ Part3/                   
 │  ├─ refine.ipynb                  - pseudo-label loop
 │  └─ runs_refined/
+|
 ├─ inference/
 │  ├─ predict.py                 - image inference
 │  └─ video.py                   - video inference (OpenCV)
-├─ sample images/.png       - folder with examples of different renderings
+|
+├─ rendered_imgs_exampless/  - folder with examples of different renderings
+│  ├─ ...
+│  └─ images.png       
+|
 ├─ synthetic_data_generator.py       - renders .blend files + calculates kp position  + adds random occluders + saves in coco
 ├─ requirements.txt
 ├─ camera.json       - intrinsics for rendering
