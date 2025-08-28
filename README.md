@@ -9,6 +9,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)]()
 [![PyTorch](https://img.shields.io/badge/PyTorch-✔-orange.svg)]()
 [![BlenderProc](https://img.shields.io/badge/BlenderProc-✔-brightgreen.svg)]()
+[![YOLO](https://img.shields.io/badge/YOLOv8-Keypoints-success.svg)]()
 
 ---
 
