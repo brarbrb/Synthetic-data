@@ -23,29 +23,37 @@ This repository develops a **2D pose estimation system** for surgical instrument
 
 ---
 
-## 📁 Repository Structure
+## 📁 Repository Structure 
 ```text
 .
 ├─ Part1/                    
 │  ├─ rendering_{type of rendering}.py     - there are multiple files that create different kinds of rendering
 |  ├─ obj_features.py              - Exploring provided .obj and .mtl files
 |  ├─ overlay_coco_kps.py         - draws key points on images of tools
-|  ├─ paste_on_random_background.py
-├─ training/                     # Phase 2: training on synthetic
+|  └─ paste_on_random_background.py
+├─ Part2/                      
 │  ├─ train.py
-│  ├─ data/                      # YOLO/MMPose datasets (symlinks or copies)
-│  └─ runs/                      # logs, checkpoints, metrics
-├─ refinement/                   # Phase 3: unsupervised domain adaptation
+│  ├─ data_config.yaml                      # YOLO/MMPose datasets (symlinks or copies)
+│  └─ runs/                      # logs, checkpoints, metrics (automatic yolo logs) 
+├─ Part3/                   # Phase 3: unsupervised domain adaptation
 │  ├─ refine.py                  # pseudo-label loop
 │  └─ runs_refined/
 ├─ inference/
 │  ├─ predict.py                 # image inference
 │  └─ video.py                   # video inference (OpenCV)
-├─ scripts/                      # convenience scripts (optional)
 ├─ requirements.txt
 ├─ README.md
+├─ camera.json       - intrinsics for rendering
 └─ LICENSE
 ```
+Provided resources (we had on the VM in /datashare/project):
+
+ - 3D CAD models (.obj) of tools (with articulation)
+
+ - Backgrounds: COCO 2017; Textures/HDRI: Polyhaven
+
+ - Unlabeled videos: (4_2_24_A_1.mp4, etc.)
+
 
 # Synthetic-data
 
