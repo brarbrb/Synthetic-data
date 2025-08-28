@@ -22,6 +22,12 @@ This repository develops a **2D pose estimation system** for surgical instrument
 - **Approach:** Synthetic data ➜ train on synthetic ➜ refine on unlabeled real video (self-training / pseudo-labels).
 
 ---
+The project was splitted into 3 phases (parts):
+1. Phase 1: dataset generation, domain gap analysis
+
+2. Phase 2: model choice, training details, results
+
+3. Phase 3: refinement strategy, comparison, challenges
 
 ## 📁 Repository Structure 
 ```text
