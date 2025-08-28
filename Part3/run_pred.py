@@ -2,7 +2,11 @@ from ultralytics import YOLO
 import cv2, os
 from tqdm import tqdm
 
-# This script is used only
+# This script is used for saving frames where detection occured
+# Useful for model that trained only on synthetic data - or just doesn't work properly
+# You save only frames that had some detection and afterwards run predictions with model and save labels 
+# I didn't save the labels here, cause I want to pick by hand images that had good predictions 
+# - YOLO generates the annotated images automatically so I can look at them and see at actual labelsn!
 
 model = YOLO("Part2/runs/pose/v8-small-add-data/weights/best.pt")  
 img_dir = "detections/images"
