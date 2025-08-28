@@ -22,12 +22,14 @@ This repository develops a **2D pose estimation system** for surgical instrument
 - **Approach:** Synthetic data ➜ train on synthetic ➜ refine on unlabeled real video (self-training / pseudo-labels).
 
 ---
-The project was splitted into 3 phases (parts):
-1. Synthetic Data Generation: dataset generation, domain gap analysis
 
-2.  Training and first Evalution: model choice, training details, results
+**The project was splitted into 3 phases (parts):**
+1. Synthetic Data Generation
 
-3.  Refinement and final evaluation: refinement strategy, comparison, challenges
+2.  Training and first Evalution
+
+3.  Refinement (with pseudo labels) and final evaluation
+
 ---
 ## ⬇️ Weights & Artifacts
 
