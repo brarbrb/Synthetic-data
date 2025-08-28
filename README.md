@@ -57,6 +57,8 @@ python video.py \
 --output results.mp4
 ```
 
+`predict.py` - This script runs YOLO object or pose detection on a video file or webcam and saves the annotated result as an output video.
+
 ### Run on Images
 ```bash
 python video.py \
@@ -72,7 +74,6 @@ python video.py \
 
 
 ---
-`predict.py` - This script runs YOLO object or pose detection on a video file or webcam and saves the annotated result as an output video.
 
 ## 📁 Repository Structure 
 ```text
