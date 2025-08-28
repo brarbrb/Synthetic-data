@@ -23,11 +23,11 @@ This repository develops a **2D pose estimation system** for surgical instrument
 
 ---
 The project was splitted into 3 phases (parts):
-1. Phase 1: dataset generation, domain gap analysis
+1. Synthetic Data Generation: dataset generation, domain gap analysis
 
-2. Phase 2: model choice, training details, results
+2.  Training and first Evalution: model choice, training details, results
 
-3. Phase 3: refinement strategy, comparison, challenges
+3.  Refinement and final evaluation: refinement strategy, comparison, challenges
 ---
 ## ⬇️ Weights & Artifacts
 
