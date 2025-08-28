@@ -13,7 +13,7 @@
 
 ---
 
-## 📌 Project Intro
+## Project Intro
 
 This repository develops a **2D pose estimation system** for surgical instruments using synthetic data first, then adapts to real, unlabeled videos.
 
@@ -26,9 +26,23 @@ This repository develops a **2D pose estimation system** for surgical instrument
 ## 📁 Repository Structure
 
 
-
-
-
+├─ synthetic/ # Phase 1: data generation
+│ ├─ synthetic_data_generator.py
+│ └─ configs/ # blender/blenderproc, camera, lighting, etc.
+├─ training/ # Phase 2: training on synthetic
+│ ├─ train.py
+│ ├─ data/ # YOLO/MMPose datasets (symlinks or copies)
+│ └─ runs/ # logs, checkpoints, metrics
+├─ refinement/ # Phase 3: unsupervised domain adaptation
+│ ├─ refine.py # pseudo-label loop
+│ └─ runs_refined/
+├─ inference/
+│ ├─ predict.py # image inference
+│ └─ video.py # video inference (OpenCV)
+├─ scripts/ # convenience scripts (optional)
+├─ requirements.txt
+├─ README.md
+└─ LICENSE
 # Synthetic-data
 
 Installation of BlenderProc: 
