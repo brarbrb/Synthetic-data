@@ -2,7 +2,7 @@
 (Estimations using synthetic images only)
 
 <p align="center">
-  <b>Phase 1:</b> Synthetic Data &nbsp;•&nbsp;
+  <b>Phase 1:</b> Synthetic Data generation &nbsp;•&nbsp;
   <b>Phase 2:</b> Train & Evaluate &nbsp;•&nbsp;
   <b>Phase 3:</b> Unsupervised Refinement on Real Video
 </p>
