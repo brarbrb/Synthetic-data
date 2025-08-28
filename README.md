@@ -45,17 +45,34 @@ Due to file size limitation we uploaded both videos to the following One Drive f
 
 in this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them.
 
-## 📹  Video and Prediction Scripts
+## 📷 Video and Images and Prediction Scripts
 
 `video.py` - This script runs YOLO object or pose detection on a video file or webcam and saves the annotated result as an output video.
 
-### ▶️ Run on a Video File
+###  Run on a Video File
 ```bash
 python video.py \
 --weights part3_best.pt \ # or other weights
 --source /path/to/your/video.mp4 \
 --output results.mp4
 ```
+
+### Run on Images
+```bash
+python video.py \
+--weights part3_best.pt \
+--source /path/to/your/image.png \ # or jpg, jpeg etc.
+--output img_name.mp4
+```
+
+
+- `--weights`: Path to your YOLO `.pt` model file
+- `--source`: Path to a video file
+- `--output`: Output path for the saved annotated video/image
+
+
+---
+`predict.py` - This script runs YOLO object or pose detection on a video file or webcam and saves the annotated result as an output video.
 
 ## 📁 Repository Structure 
 ```text
