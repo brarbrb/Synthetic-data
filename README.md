@@ -19,7 +19,7 @@
 This repository develops a **2D pose estimation system** for surgical instruments using synthetic data first, then adapts to real, unlabeled videos.
 
 - **Goal:** Detect per-tool keypoints and poses in 2D images/videos.
-- **Key challenges:** Occlusion, articulation, domain gap, and real-time constraints.
+- **Key challenges:** Occlusion, articulation, domain gap, and no real labeled data.
 - **Approach:** Synthetic data ➜ train on synthetic ➜ refine on unlabeled real video (self-training / pseudo-labels).
 
 ---
