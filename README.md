@@ -44,8 +44,8 @@ Due to lower quality the perfomance is much worse on them!
 1. In this folder you can find also ZIP folder with the blend tools used in Part 1. Unzip the folder to use them!
    
 2. The video `results_synthetic_only.mp4` has only 10% of frames of the video labeled. Almost invisible!
-   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We saved the annotated images and labels in Part3/fine_tune/pseudo_v1 on vm (we can't upload it due to weight restrictions)
-
+   We explained in our final report that we've run a a sccript `Part3/run_pred.py` that saves only the frames that had any detections. Afterwards in `Part3/refine.ipynb` we    run predictions on these frames to get annotated images and labels (automatically in yolo format). We saved the annotated images and labels in Part3/fine_tune/pseudo_v1 on vm (we can't upload it due to weight restrictions). 
+Based on annotated frames we could hand-pick "the best" predictions we had (120 frames) and added them to training.  
 ## 📷 Video and Images and Prediction Scripts
 
 `video.py` - This script runs YOLO object for pose detection on a video file and saves the annotated result as an output video. (using OpenCV)
@@ -235,7 +235,8 @@ Strategy: unsupervised refinement using pseudo-labels.
 Steps:
 
 - Ran inference with run_pred.py on real video → saved all frames with any detection.
-- Used refine.ipynb to collect ~120 best pseudo-labeled frames.
+- Used refine.ipynb to save annotated images with predicted labels
+- Hand picked ~120 best pseudo-labeled frame and fed them into training set as ground truth
 - Added extra forced-occlusion images (200 train + 100 val) to strengthen robustness.
 - Retrained using only yolov8s-pose (lighter, similar performance to m).
 
