@@ -236,7 +236,7 @@ Steps:
 
 - Ran inference with run_pred.py on real video → saved all frames with any detection.
 - Used refine.ipynb to save annotated images with predicted labels
-- Hand picked ~120 best pseudo-labeled frame and fed them into training set as ground truth
+- Hand picked ~120 best predictions and fed them into training set as ground truth (pseudo-labeles)
 - Added extra forced-occlusion images (200 train + 100 val) to strengthen robustness.
 - Retrained using only yolov8s-pose (lighter, similar performance to m).
 
