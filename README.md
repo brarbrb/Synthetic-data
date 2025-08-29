@@ -62,10 +62,10 @@ python video.py \
 
 ### Run on Images
 ```bash
-python video.py \
+python predict.py \
 --weights part3_best.pt \
 --source /path/to/your/image.png \ # or jpg, jpeg etc.
---output img_name.mp4
+--output img_name.png
 ```
 
 
